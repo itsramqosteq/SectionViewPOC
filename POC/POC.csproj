@@ -1,0 +1,370 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{43D647C4-4AE7-440C-885B-1AB67211BF6C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>POC</RootNamespace>
+    <AssemblyName>POC</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProgramW6432)\Autodesk\Revit 2017\Revit.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(ProgramW6432)\Autodesk\Revit 2017\Revit.exe</StartProgram>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="MaterialDesignColors, Version=2.0.5.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MaterialDesignColors.2.0.5\lib\net452\MaterialDesignColors.dll</HintPath>
+    </Reference>
+    <Reference Include="MaterialDesignThemes.Wpf, Version=4.4.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
+      <HintPath>..\packages\MaterialDesignThemes.4.4.0\lib\net452\MaterialDesignThemes.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="ReachFramework" />
+    <Reference Include="RevitAPI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2020\RevitAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2020\RevitAPIUI.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.CodeDom, Version=6.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.CodeDom.6.0.0\lib\net461\System.CodeDom.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing.Design" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.7\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Printing" />
+    <Reference Include="System.Runtime, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.1\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.1\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.2\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
+    <Reference Include="System.Windows.Forms.DataVisualization.Design" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommonControl\Class\BaseClass.cs" />
+    <Compile Include="CommonControl\Class\ConGrid.cs" />
+    <Compile Include="CommonControl\Class\CustomUIApplication.cs" />
+    <Compile Include="CommonControl\Class\User.cs" />
+    <Compile Include="CommonControl\Class\UserActivityLog.cs" />
+    <Compile Include="CommonControl\Class\Validationmethod.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\ColorPicker\ColorPicker.xaml.cs">
+      <DependentUpon>ColorPicker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Inputs\ColorPicker\ColorPickerVM.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\ColorPicker\CustomColorPicker.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\MultiSelect\MultiSelect.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\MultiSelect\MultiSelect.xaml.cs">
+      <DependentUpon>MultiSelect.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Inputs\MultiSelect\MultiSelectVM.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\RadioButton\RadioButton.xaml.cs">
+      <DependentUpon>RadioButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Inputs\RadioButton\RadioButtonClass.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\TextBox\NotEmptyValidationRule.cs" />
+    <Compile Include="CommonControl\Controls\Inputs\TextBox\TextBox.xaml.cs">
+      <DependentUpon>TextBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Inputs\TextBox\TextBoxVM.cs" />
+    <Compile Include="CommonControl\Controls\Tools\Alert\AlertBoxContent.xaml.cs">
+      <DependentUpon>AlertBoxContent.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Alert\AlertVM.cs" />
+    <Compile Include="CommonControl\Controls\Tools\Alert\CustomAlert.cs" />
+    <Compile Include="CommonControl\Controls\Tools\Buttons\Button.xaml.cs">
+      <DependentUpon>Button.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Buttons\IconButton.xaml.cs">
+      <DependentUpon>IconButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\CopyClipBoard\CopyClipBoard.xaml.cs">
+      <DependentUpon>CopyClipBoard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Excel\ExportExcel\ExportExcel.xaml.cs">
+      <DependentUpon>ExportExcel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Excel\ImportExcel\ImportExcel.xaml.cs">
+      <DependentUpon>ImportExcel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Excel\ImportExcel\ImportExcelFields.xaml.cs">
+      <DependentUpon>ImportExcelFields.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Excel\ImportExcel\ImportExcelVM.cs" />
+    <Compile Include="CommonControl\Controls\Tools\Excel\ImportExcel\ProgressDialog.xaml.cs">
+      <DependentUpon>ProgressDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Panels\FooterPanel\FooterPanel.xaml.cs">
+      <DependentUpon>FooterPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Panels\HeaderPanel\HeaderPanel.xaml.cs">
+      <DependentUpon>HeaderPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\Panels\TabPanel\CustomTab.cs" />
+    <Compile Include="CommonControl\Controls\Tools\Panels\TabPanel\TabPanel.xaml.cs">
+      <DependentUpon>TabPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\ProgressBar\ProgressBarDialogUserControl.xaml.cs">
+      <DependentUpon>ProgressBarDialogUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Controls\Tools\ToolTip\ToolTip.xaml.cs">
+      <DependentUpon>ToolTip.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CommonControl\Converters\AddDoubleValue.cs" />
+    <Compile Include="CommonControl\Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="CommonControl\Converters\BrushConverter.cs" />
+    <Compile Include="CommonControl\Converters\MarginConverter .cs" />
+    <Compile Include="CommonControl\Filter\GroupElementsByFilter.cs" />
+    <Compile Include="CommonControl\Filter\ElementsFilter.cs" />
+    <Compile Include="CommonControl\Filter\FamilyOption.cs" />
+    <Compile Include="CommonControl\Filter\GetRunElementsByFilter.cs" />
+    <Compile Include="CommonControl\Utility\ConduitUtility.cs" />
+    <Compile Include="CommonControl\Utility\ElementsUtility.cs" />
+    <Compile Include="CommonControl\Utility\ExportUtility.cs" />
+    <Compile Include="CommonControl\Utility\FamilyUtility.cs" />
+    <Compile Include="CommonControl\Utility\FittingUtility.cs" />
+    <Compile Include="CommonControl\Utility\InternalUtility.cs" />
+    <Compile Include="CommonControl\Utility\IntersectionUtility.cs" />
+    <Compile Include="CommonControl\Utility\UserActivityUtility.cs" />
+    <Compile Include="CommonControl\Utility\Utility.cs" />
+    <Compile Include="CommonControl\ViewModel\ViewModelBase.cs" />
+    <Compile Include="Helper\Singleton.cs" />
+    <Compile Include="Helper\Util.cs" />
+    <Compile Include="MVVM\Model\ElementGroupByOrder.cs" />
+    <Compile Include="MVVM\ViewModel\FieldViewModel.cs" />
+    <Compile Include="MVVM\ViewModel\ViewModel.cs" />
+    <Compile Include="MVVM\View\ParentUserControl.xaml.cs">
+      <DependentUpon>ParentUserControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MVVM\View\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RevitAPI\APIClasses\App.cs" />
+    <Compile Include="RevitAPI\APIClasses\Command.cs" />
+    <Compile Include="RevitAPI\APICommon\Common.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler - BACKUP.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler_FilledRegion.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler-1106backup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="CommonControl\Controls\Inputs\ColorPicker\ColorPicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Inputs\MultiSelect\MultiSelect.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Inputs\RadioButton\RadioButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Inputs\TextBox\TextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Alert\AlertBoxContent.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Buttons\Button.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Buttons\IconButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\CopyClipBoard\CopyClipBoard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Excel\ExportExcel\ExportExcel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Excel\ImportExcel\ImportExcel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Excel\ImportExcel\ImportExcelFields.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Excel\ImportExcel\ProgressDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Panels\FooterPanel\FooterPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Panels\HeaderPanel\HeaderPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\Panels\TabPanel\TabPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\ProgressBar\ProgressBarDialogUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CommonControl\Controls\Tools\ToolTip\ToolTip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MVVM\View\ParentUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MVVM\View\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\FNG.png" />
+    <Content Include="Images\whiteback.PNG" />
+    <Content Include="POC.addin">
+      <SubType>Designer</SubType>
+    </Content>
+    <Resource Include="Resources\Font\OFL.txt" />
+    <Resource Include="Resources\16x16.png" />
+    <Resource Include="Resources\Sanveo.png" />
+    <Resource Include="Resources\32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+    <Resource Include="Resources\Font\Poppins-Black.ttf" />
+    <Resource Include="Resources\Font\Poppins-BlackItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Bold.ttf" />
+    <Resource Include="Resources\Font\Poppins-BoldItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-ExtraBold.ttf" />
+    <Resource Include="Resources\Font\Poppins-ExtraBoldItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-ExtraLight.ttf" />
+    <Resource Include="Resources\Font\Poppins-ExtraLightItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Italic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Light.ttf" />
+    <Resource Include="Resources\Font\Poppins-LightItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Medium.ttf" />
+    <Resource Include="Resources\Font\Poppins-MediumItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Regular.ttf" />
+    <Resource Include="Resources\Font\Poppins-SemiBold.ttf" />
+    <Resource Include="Resources\Font\Poppins-SemiBoldItalic.ttf" />
+    <Resource Include="Resources\Font\Poppins-Thin.ttf" />
+    <Resource Include="Resources\Font\Poppins-ThinItalic.ttf" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterClean">
+    <Delete Files="$(AppData)\Autodesk\REVIT\Addins\2017\DE.addin" />
+    <Delete Files="$(AppData)\Autodesk\REVIT\Addins\2017\DE.dll" />
+  </Target>
+  <Import Project="..\packages\MaterialDesignThemes.4.4.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.4.0\build\MaterialDesignThemes.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\MaterialDesignThemes.4.4.0\build\MaterialDesignThemes.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MaterialDesignThemes.4.4.0\build\MaterialDesignThemes.targets'))" />
+  </Target>
+</Project>

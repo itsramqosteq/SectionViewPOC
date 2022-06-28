@@ -1,0 +1,158 @@
+﻿<UserControl x:Class="POC.MultiSelectUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:POC"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+            <local:BooleanToVisibilityConverter x:Key="VisibiltyConvertor"></local:BooleanToVisibilityConverter>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid   x:Name="grdContainer">
+
+        <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="lbl"
+                           Foreground="#005D9A"
+                           FontSize="12"
+                           FontFamily="/POC;component/Resources/Font/#Poppins SemiBold"
+                           Margin="0,0,0,4"></TextBlock>
+                <TextBlock Text="*"
+                           x:Name="TxtIsRequired"
+                           Foreground="#D85922"
+                           Visibility="Collapsed"
+                           FontSize="11"></TextBlock>
+            </StackPanel>
+            <!--PreviewKeyDown="cmbMultiSelect_KeyDown"
+             TextSearch.TextPath="displayText" SelectionChanged="cmbMultiSelect_SelectionChanged"-->
+            <ComboBox  Background="White"
+                       HorizontalAlignment="Left"
+                       materialDesign:TextFieldAssist.TextFieldCornerRadius="0"
+                       VerticalContentAlignment="Center"
+                       x:Name="cmbMultiSelect"
+                       TextSearch.TextPath="DisplayText"
+                       StaysOpenOnEdit="True"
+                       IsEditable="True"
+                       IsTextSearchEnabled="True"
+                       Height="40"
+                       FontFamily=" /POC;component/Resources/Font/#Poppins Regular"
+                       BorderBrush="#ccc"
+                       BorderThickness="1"
+                       DropDownClosed="CmbMultiSelect_DropDownClosed"
+                       TextBoxBase.TextChanged="CmbMultiSelect_TextChanged"
+                       SelectionChanged="CmbMultiSelect_SelectionChanged">
+
+                <ComboBox.Resources>
+                    <Style TargetType="ScrollBar">
+
+                        <Style.Triggers>
+                            <Trigger Property="Orientation"
+                                     Value="Vertical">
+                                <Setter Property="Width"
+                                        Value="10" />
+                                <Setter Property="MinWidth"
+                                        Value="10" />
+                            </Trigger>
+                            <Trigger Property="Orientation"
+                                     Value="Horizontal">
+                                <Setter Property="Height"
+                                        Value="10" />
+                                <Setter Property="MinHeight"
+                                        Value="10" />
+                            </Trigger>
+                        </Style.Triggers>
+
+                    </Style>
+                </ComboBox.Resources>
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="BorderBrush"
+                                Value="#ccc" />
+                        <Setter Property="BorderThickness"
+                                Value="0,0,0,1" />
+                        <Setter Property="Padding"
+                                Value="0,0,0,0" />
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel  Height="{Binding ItemHeight}"
+                                     HorizontalAlignment="Left">
+                            <CheckBox x:Name="chk"
+                                      Margin="5,0,0,0"
+                                      Tag="{Binding Name}"
+                                      Checked="Chk_Checked"
+                                      Unchecked="Chk_Checked"
+                                      IsChecked="{Binding IsChecked}"
+                                      CommandParameter="{Binding Id}">
+                                <Grid MinWidth="{Binding TextBlockWidth}"
+                                      Height="{Binding ItemHeight}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                        <ColumnDefinition Width="20"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal"
+                                                Grid.Column="0"
+                                                HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Name}"
+                                                   HorizontalAlignment="Left"
+                                                   Padding="0,7,0,0"
+                                                   FontSize="11"
+                                                   Margin="0,-2,0,0"
+                                                   FontFamily=" /POC;component/Resources/Font/#Poppins Regular"></TextBlock>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal"
+                                                Grid.Column="1"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                        <materialDesign:PackIcon x:Name="btnRemoveItems"
+                                                                 Visibility="{Binding IsRemoveItem, 
+                          Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                                 Tag="{Binding}"
+                                                                 Kind="Delete"
+                                                                 Margin="0,0,5,0"
+                                                                 Width="17"
+                                                                 Height="17"
+                                                                 Opacity="0.7"
+                                                                 Cursor="Hand"
+                                                                 Foreground="#005D9A"
+                                                                 MouseDown="BtnRemoveItems_MouseDown" />
+                                    </StackPanel>
+                                </Grid>
+                            </CheckBox>
+
+
+                        </StackPanel>
+
+
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+
+
+        <materialDesign:PackIcon x:Name="btnAddItem"
+                                 Width="20"
+                                 Kind="PlusBox"
+                                 MouseEnter="BtnAddItem_MouseEnter"
+                                 MouseLeave="BtnAddItem_MouseLeave"
+                                 HorizontalAlignment="Right"
+                                 Cursor="Hand"
+                                 MouseDown="BtnAddItem_MouseDown"
+                                 Height="20"
+                                 Margin="0,40,12,0"
+                                 Foreground="#005D9A" />
+
+        <local:ToolTipUserControl  x:Name="btnTooltip"></local:ToolTipUserControl>
+
+
+    </Grid>
+</UserControl>

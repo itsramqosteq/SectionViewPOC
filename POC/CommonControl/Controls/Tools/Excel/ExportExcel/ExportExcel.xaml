@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="POC.ExportExcelUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:POC"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             >
+    <Grid>
+    
+        <local:IconButtonUserControl x:Name="btnExport" Icon="Export" Margin="0,10,0,0"  
+                                     HoverForeColor="#FFFFFF" 
+                                     HoverBackground="#005D9A"
+                                     BtnClick="BtnExport_Click"></local:IconButtonUserControl>
+    </Grid>
+</UserControl>

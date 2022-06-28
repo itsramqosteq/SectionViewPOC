@@ -1,0 +1,125 @@
+﻿<UserControl x:Class="POC.Internal.AlertBoxContentUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:POC"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+
+    </UserControl.Resources>
+    <Border Background="#E5EEF5">
+        <Grid   Width="220"
+                Height="200"
+                Margin="15">
+            <Grid.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="Padding"
+                            Value="10" />
+                </Style>
+            </Grid.Resources>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="80"></RowDefinition>
+                <RowDefinition Height="27"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                <Border x:Name="IconBorder"
+                        Width="80" Background="Transparent"
+                        Height="80" Padding="0" CornerRadius="40">
+                <materialDesign:PackIcon x:Name="icon"
+                                         
+                                         Width="80"
+                                         Height="80"
+                                         Kind="Information"
+                                         Foreground="#005D9A" />
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Row="1"
+                        HorizontalAlignment="Center">
+                <TextBlock x:Name="txtTittle"
+                           Text="oops"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Foreground="#005D9A"></TextBlock>
+            </StackPanel>
+            <StackPanel Grid.Row="2" 
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="oops"
+                           x:Name="txtContent"
+                           TextWrapping="Wrap"
+                           Padding="10"
+                           FontSize="11"
+                           Foreground="#005D9A"></TextBlock>
+
+            </StackPanel>
+            <StackPanel Grid.Row="3"
+                        x:Name="eventRow"
+                        HorizontalAlignment="Center">
+                <Button Width="70"
+                        Height="24"
+                        Background="#FFFFFF"
+                        BorderBrush="#FFFFFF"
+                        Foreground="#005D9A"
+                        FontSize="11"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        x:Name="btnOkay"
+                        Content="OK"
+                        Click="BtnOkay_Click"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                    <Button.CommandParameter>
+                        <system:Boolean>True</system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Row="3"
+                        x:Name="confirmEventRow"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                <Button Width="72"
+                        Height="24"
+                        Background="#005D9A"
+                        BorderBrush="#005D9A"
+                        Foreground="#FFFFFF"
+                        FontSize="11"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        x:Name="cnf_btnOkay"
+                        Content="Yes"
+                        Click="Cnf_btnOkay_Click"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                    <Button.CommandParameter>
+                        <system:Boolean>True</system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+                <Button Width="72"
+                        Margin="15,0,0,0"
+                        Height="24"
+                        Background="#FFFFFF"
+                        BorderBrush="#FFFFFF"
+                        Foreground="#005D9A"
+                        FontSize="11"
+                        materialDesign:ButtonAssist.CornerRadius="15"
+                        x:Name="cnf_btnNo"
+                        Content="Cancel"
+                        Click="Cnf_btnNo_Click"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}">
+                    <Button.CommandParameter>
+                        <system:Boolean>True</system:Boolean>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

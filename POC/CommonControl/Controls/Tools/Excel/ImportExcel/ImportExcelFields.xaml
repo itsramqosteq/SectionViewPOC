@@ -1,0 +1,195 @@
+﻿<UserControl x:Class="POC.Internal.ImportExcelFieldsUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             Width="250"
+             Height="200">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Background="#E5EEF5" >
+     
+
+            <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Grid.ColumnSpan="2"
+                    Background="#061B6C" >
+            <StackPanel Orientation="Vertical"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock  FontSize="14"
+                        Foreground="#fff">Import Excel</TextBlock>
+            </StackPanel>
+
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Left" Margin="5,5,0,0">
+            <TextBlock Text="Work Sheet"
+                       FontSize="11"
+                       Foreground="#005D9A"></TextBlock>
+            <ComboBox x:Name="excelsheet"
+                      Margin="0 5 5 0"
+                      Background="White"
+                      BorderBrush="#ccc"
+                      BorderThickness="1"
+                      Height="30"
+                      FontFamily=" /POC;component/Resources/Font/#Poppins Regular"
+                      HorizontalAlignment="Left"
+                      Width="106"
+                      Padding="5,5,5,5"
+                      IsEditable="True"
+                      StaysOpenOnEdit="True"
+                      ItemsSource="{Binding sheetnames}"
+                      FontSize="10"
+                      ToolTip="Select sheet in excel workbook" />
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Grid.Column="1"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Left"
+                    Margin="0,5,5,0">
+            <TextBlock Text="Table Header Index"
+                       FontSize="11"
+                       Foreground="#005D9A"></TextBlock>
+            <TextBox  Background="White"
+                      FontFamily=" /POC;component/Resources/Font/#Poppins Regular"
+                      BorderThickness="1"
+                      BorderBrush="#ccc"
+                      Foreground="#999"
+                      Padding="5"
+                      PreviewMouseRightButtonDown="txtValue_PreviewMouseRightButtonDown"
+                      PreviewMouseRightButtonUp="txtValue_PreviewMouseRightButtonDown"
+                      x:Name="txtHeaderIndex"
+                      Margin="0 5 5 0"
+                      TextChanged="TxtHeaderIndex_TextChanged"
+                      PreviewTextInput="PreviewTextInputHeaderIndex"></TextBox>
+        </StackPanel>
+        <StackPanel Grid.Row="2"
+                    Grid.Column="0"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Left" Margin="5,0,0,0">
+            <TextBlock Text="Row Start"
+                       FontSize="11"
+                       Foreground="#005D9A"></TextBlock>
+
+
+
+            <TextBox Background="White"
+                     BorderThickness="1"
+                     FontFamily=" /POC;component/Resources/Font/#Poppins Regular"
+                     BorderBrush="#ccc"
+                     Foreground="#999"
+                     Padding="5" LostFocus="txtRowStart_LostFocus"
+                     x:Name="txtRowStart"
+                     PreviewTextInput="PreviewTextInputHeaderIndex"
+                     Margin="0 5 5 0"
+                     Width="106"
+                     FontSize="12"
+                     PreviewMouseRightButtonDown="txtValue_PreviewMouseRightButtonDown"
+                     PreviewMouseRightButtonUp="txtValue_PreviewMouseRightButtonDown" />
+        </StackPanel>
+        <StackPanel Grid.Row="2"
+                    Grid.Column="1"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Left" Margin="0,0,5,0">
+            <TextBlock Text="Row End"
+                       FontSize="11"
+                       Foreground="#005D9A"></TextBlock>
+            <TextBox  Margin="0,5,0,0"
+                      Background="White"
+                      FontFamily=" /POC;component/Resources/Font/#Poppins Regular"
+                      BorderThickness="1"
+                      BorderBrush="#ccc"
+                      Foreground="#999"
+                      Padding="5"
+                      LostFocus="txtRowEnd_LostFocus"
+                      PreviewTextInput="PreviewTextInputHeaderIndex"
+                      x:Name="txtRowEnd"
+                      Width="106"
+                      FontSize="12"
+                      PreviewMouseRightButtonDown="txtValue_PreviewMouseRightButtonDown"
+                      PreviewMouseRightButtonUp="txtValue_PreviewMouseRightButtonDown" />
+        </StackPanel>
+        <StackPanel Grid.Row="3"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <Button x:Name="btnUpload"
+                    IsDefault="True"
+                    materialDesign:ButtonAssist.CornerRadius="15"
+                    FontSize="11"
+                    Tag="import"
+                    Width="85"
+                    Padding="0"
+                    Opacity="0.6"
+                    Height="24"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Click="BtnUpload_Click"
+                    MouseEnter="Btn_MouseEnter"
+                    MouseLeave="Btn_MouseLeave">
+                <Button.CommandParameter>
+                    <system:Boolean>True</system:Boolean>
+                </Button.CommandParameter>
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="-5,0,0,0">
+                        <materialDesign:PackIcon Kind="Upload" />
+                        <TextBlock  Text="Import"
+                                    Foreground="White"
+                                    Margin="2,0,0,0"></TextBlock>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            <Button x:Name="btnCancel"
+                    IsCancel="True"
+                    Background="#FFFFFF"
+                    BorderBrush="#FFFFFF"
+                    Margin="14 0 0 0"
+                    FontSize="11"
+                    Width="85"
+                    Height="24"
+                    materialDesign:ButtonAssist.CornerRadius="15"
+                    MouseEnter="Btn_MouseEnter"
+                    MouseLeave="Btn_MouseLeave"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Click="btnCancel_Click">
+                <Button.CommandParameter>
+                    <system:Boolean>False</system:Boolean>
+                </Button.CommandParameter>
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="-5,0,0,0">
+                        <materialDesign:PackIcon x:Name="cancelIcon"
+                                                 Kind="Close"
+                                                 Foreground="Black" />
+                        <TextBlock Text="Cancel"
+                                   x:Name="cancelText"
+                                   Foreground="Black"
+                                   Margin="2,0,0,0"></TextBlock>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </StackPanel>
+        </Grid>
+    
+
+</UserControl>

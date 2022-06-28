@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="POC.IconButtonUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:POC"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             >
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+
+    </UserControl.Resources>
+    <Grid>
+
+        <Button x:Name="btn" 
+            Style="{DynamicResource MaterialDesignFloatingActionMiniButton}"
+            materialDesign:ShadowAssist.ShadowDepth="Depth1"
+            Click="Btn_Click"
+            BorderThickness="1"
+            MouseEnter="Btn_MouseEnter"
+            MouseLeave="Btn_MouseLeave">
+        <materialDesign:PackIcon x:Name="btnIcon"
+                                 />
+    </Button>
+        <local:ToolTipUserControl  x:Name="btnTooltip"></local:ToolTipUserControl>
+    </Grid>
+</UserControl>

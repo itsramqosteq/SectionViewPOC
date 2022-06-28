@@ -1,0 +1,241 @@
+﻿<UserControl x:Class="POC.ColorPickerUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:POC"
+             mc:Ignorable="d" 
+             >
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+              <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PopupBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Slider.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+
+    </UserControl.Resources>
+    <Grid   x:Name="grdContainer">
+
+        <StackPanel>
+            <TextBlock  x:Name="lbl"
+                        Foreground="#005D9A"
+                        FontSize="12"
+                        FontFamily="/POC;component/Resources/Font/#Poppins SemiBold" 
+                        Margin="0,0,0,4"></TextBlock>
+
+            <ComboBox x:Name="cmb_colorPicker"
+                      Height="40"
+                      Padding="10,0,40,0"
+                      HorizontalAlignment="Left"
+                        DropDownClosed="Cmb_colorPicker_DropDownClosed"
+                      MinWidth="100"
+                      FontSize="11"
+                      materialDesign:TextFieldAssist.TextFieldCornerRadius="0"
+                      SelectionChanged="Cmb_colorPicker_SelectionChanged"
+                      Background="#ffffff"
+                      BorderBrush="#ccc" BorderThickness="1">
+                <ComboBox.Resources>
+                    <Style TargetType="ScrollBar">
+
+                        <Style.Triggers>
+                            <Trigger Property="Orientation"
+                                     Value="Vertical">
+                                <Setter Property="Width"
+                                        Value="10" />
+                                <Setter Property="MinWidth"
+                                        Value="10" />
+
+                            </Trigger>
+                            <Trigger Property="Orientation"
+                                     Value="Horizontal">
+                                <Setter Property="Height"
+                                        Value="10" />
+                                <Setter Property="MinHeight"
+                                        Value="10" />
+                            </Trigger>
+                        </Style.Triggers>
+
+                    </Style>
+
+                </ComboBox.Resources>
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ComboBoxItem}">
+                        <Setter Property="BorderBrush"
+                                Value="#ccc" />
+                        <Setter Property="BorderThickness"
+                                Value="0,0,0,1" />
+                        <Setter Property="Padding"
+                                Value="7,5,5,7" />
+
+                    </Style>
+
+                </ComboBox.ItemContainerStyle>
+
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                            <StackPanel Orientation="Horizontal" 
+                                    VerticalAlignment="Center" >
+                                <Rectangle Fill="{Binding SolidColorBrush}"
+                                       Width="16" VerticalAlignment="Center"
+                                       Height="16"
+                                       Margin="0 10 5 2" />
+                                <TextBlock Text="{Binding ColorName}" VerticalAlignment="Center"
+                                       FontFamily="/POC;component/Resources/Font/#Poppins Regular"
+                                       Margin="5,10,0,0"
+                                       FontSize="11" />
+
+
+
+                            </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+
+        </StackPanel>
+        <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" HorizontalAlignment="Right"
+                               Opened="PopupBox_Opened"
+                                 x:Name="popupBox"
+                                 StaysOpen="True" 
+                                 Closed="PopupBox_Closed" PopupHorizontalOffset="-25"
+                                 PopupVerticalOffset="5" Padding="0"
+                                 materialDesign:ShadowAssist.ShadowDepth="Depth5">
+            <materialDesign:PopupBox.ToggleContent>
+                <materialDesign:PackIcon x:Name="btnMoreColors" Kind="FormatColorFill" MouseEnter="PackIcon_MouseEnter" MouseLeave="PackIcon_MouseLeave"
+                                         BorderThickness="0"
+                                         Margin="0,35,7,0"
+                                         Foreground="#005D9A"
+                                         Width="20"
+                                         Height="20" />
+            </materialDesign:PopupBox.ToggleContent>
+
+            <Grid Background="White">
+                <Grid  x:Name="popupContainer"
+                      Margin="10,10,10,10"
+                     
+                      Height="200">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="10"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="50"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="80"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                        <RowDefinition Height="40"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Background="AliceBlue" Grid.ColumnSpan="3">
+                        <materialDesign:Card Padding="0"  x:Name="colorFill"
+                                             Margin="0" Height="70"
+                                            
+                                             materialDesign:ShadowAssist.ShadowDepth="Depth3">
+
+                        </materialDesign:Card>
+                    </StackPanel>
+                    <!--row 1-->
+                    <StackPanel Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="R" FontWeight="Bold"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1"
+                            Grid.Column="1"
+                            VerticalAlignment="Center" >
+                        <Slider Width="150" x:Name="slColorR"
+                                Minimum="0"
+                                Maximum="255"
+                                Value="0"
+                                ValueChanged="ColorSlider_ValueChanged">
+
+                        </Slider>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1"
+                            VerticalAlignment="Center"
+                            Grid.Column="2">
+                        <TextBox 
+                       Text="{Binding Path=Value, ElementName=slColorR, UpdateSourceTrigger=PropertyChanged}"
+                             BorderBrush="#999"
+                                 BorderThickness="1"
+                                 TextAlignment="Center"
+                                 Background="White"
+                                ></TextBox>
+                    </StackPanel>
+
+                    <!--row 2-->
+                    <StackPanel Grid.Row="2"
+                            Grid.Column="0"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="G"
+                               FontWeight="Bold"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Row="2"
+                            Grid.Column="1"
+                            VerticalAlignment="Center">
+                        <Slider Width="150"
+                                x:Name="slColorG"
+                                Minimum="0"
+                                Maximum="255"
+                                TickFrequency="1"
+                                ValueChanged="ColorSlider_ValueChanged">
+
+
+                        </Slider>
+                    </StackPanel>
+                    <StackPanel Grid.Row="2"
+                            VerticalAlignment="Center"
+                            Grid.Column="2">
+                        <TextBox 
+                                 Text="{Binding Path=Value, ElementName=slColorG, UpdateSourceTrigger=PropertyChanged}"
+                                
+                                 BorderBrush="#999"
+                                 TextAlignment="Center"
+                                 BorderThickness="1"
+                                 Background="White"
+                                ></TextBox>
+                    </StackPanel>
+                    <!--row 3-->
+                    <StackPanel Grid.Row="3"
+                            Grid.Column="0"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="B"
+                               FontWeight="Bold"></TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3"
+                            Grid.Column="1"
+                            VerticalAlignment="Center">
+                        <Slider Width="150"
+                                x:Name="slColorB"
+                                Minimum="0"
+                            Maximum="255"
+                                TickFrequency="1"
+                                ValueChanged="ColorSlider_ValueChanged" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="3"
+                            VerticalAlignment="Center"
+                            Grid.Column="2">
+                        <TextBox 
+                                 Text="{Binding Path=Value, ElementName=slColorB, UpdateSourceTrigger=PropertyChanged}"
+                                 
+                                 TextAlignment="Center"
+                                
+                                 BorderBrush="#999"
+                                 BorderThickness="1"
+                                 Background="White"
+                                ></TextBox>
+                    </StackPanel>
+
+                </Grid>
+            </Grid>
+
+
+        </materialDesign:PopupBox>
+        <local:ToolTipUserControl  x:Name="btnTooltip"></local:ToolTipUserControl>
+    </Grid>
+</UserControl>

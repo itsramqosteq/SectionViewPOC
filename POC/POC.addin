@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Text>Command POC</Text>
+    <POCscription>Some POCscription for POC</POCscription>
+    <Assembly>POC.dll</Assembly>
+    <FullClassName>POC.Command</FullClassName>
+    <ClientId>9d73c2d8-a5da-4c60-b165-999c8545ed9b</ClientId>
+    <VendorId>www.qosteq.com</VendorId>
+    <VendorPOCscriptionscription>Sanveo Inc</VendorPOCscriptionscription>
+  </AddIn>
+  <AddIn Type="Application">
+    <Name>Application POC</Name>
+    <Assembly>POC.dll</Assembly>
+    <FullClassName>POC.App</FullClassName>
+    <ClientId>5744d6ab-e75a-4422-9674-df38dbd2e7bf</ClientId>
+    <VendorId>www.qosteq.com</VendorId>
+    <VendorPOCscriptionscription>Sanveo Inc</VendorPOCscriptionscription>
+  </AddIn>
+</RevitAddIns>
