@@ -30,6 +30,7 @@ namespace POC
             return xy != null ? new XYZ(xy.X, xy.Y, 0) : null;
 
         }
+      
         public static XYZ SetZvalue(XYZ xy, XYZ xYZ = null, double Z = 0)
         {
 

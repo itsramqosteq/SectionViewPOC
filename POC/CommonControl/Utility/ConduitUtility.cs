@@ -83,6 +83,52 @@ namespace POC
                 return null;
             }
         }
+        public static XYZ GetMidPoint(Element element, bool setZvalueZero = false)
+        {
+            Line line = GetLineFromConduit(element, setZvalueZero);
+            return (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
+        }
+        public static XYZ GetMidPoint(Conduit conduit, bool setZvalueZero = false)
+        {
+            Line line = GetLineFromConduit(conduit, setZvalueZero);
+            return (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
+        }
+        public static XYZ GetMidPoint(Line line)
+        {
+
+            return (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
+        }
+        public static List<Element> OrderTheConduit(List<Element> conduitList)
+        {
+            XYZ midPoint = GetMidPoint(conduitList[0], true);
+            KeyValuePair<XYZ, XYZ> crossProduct = CrossProduct(conduitList[0], midPoint, 100, true);
+            Line line = Line.CreateBound(crossProduct.Key, crossProduct.Value);
+            SortedDictionary<double, Tuple<XYZ, Element>> orderPoints = new SortedDictionary<double, Tuple<XYZ, Element>>();
+            orderPoints.Add(0, new Tuple<XYZ, Element>(midPoint, conduitList[0]));
+            foreach (Element e in conduitList.Skip(1))
+            {
+                Line cline = GetLineFromConduit(e, true);
+                XYZ point = Utility.GetIntersection(cline, line);
+                if (point != null && !orderPoints.Any(x => x.Key == midPoint.DistanceTo(point)))
+                {
+                    orderPoints.Add(midPoint.DistanceTo(point), new Tuple<XYZ, Element>(point, e));
+                }
+            }
+            midPoint = orderPoints.LastOrDefault().Value.Item1;
+            SortedDictionary<double, Tuple<XYZ, Element>> finalList = new SortedDictionary<double, Tuple<XYZ, Element>>();
+            finalList.Add(0, orderPoints.LastOrDefault().Value);
+            foreach (KeyValuePair<double, Tuple<XYZ, Element>> keyValue in orderPoints.Reverse().Skip(1))
+            {
+                Line cline = GetLineFromConduit(keyValue.Value.Item2, true);
+                XYZ point = Utility.GetIntersection(cline, line);
+                if (point != null && !finalList.Any(x => x.Key == midPoint.DistanceTo(point)))
+                {
+                    finalList.Add(midPoint.DistanceTo(point), new Tuple<XYZ, Element>(point, keyValue.Value.Item2));
+                }
+            }
+           
+            return finalList.Select(x => x.Value.Item2).ToList();
+        }
         public static Conduit FindOuterConduit(List<Element> conduitlist)
         {
             Conduit outerconduit = null;

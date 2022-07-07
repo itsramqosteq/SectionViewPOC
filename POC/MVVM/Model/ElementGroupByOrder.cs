@@ -13,6 +13,8 @@ namespace POC
     {
 
         public List<Element> CurrentElement { get; set; }
+        public List<Element> PreviousGroupElement { get; set; }
+        public List<Element> PreviousCurrentGroupElement { get; set; }
         public List<Element> PreviousElement { get; set; }
         public ViewSection ViewSection { get; set; }
 

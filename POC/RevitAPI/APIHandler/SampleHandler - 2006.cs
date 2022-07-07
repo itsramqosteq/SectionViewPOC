@@ -16,7 +16,7 @@ namespace POC
 {
     [Transaction(TransactionMode.Manual)]
 
-    public class SampleHandler : IExternalEventHandler
+    public class SampleHandler2006 : IExternalEventHandler
     {
         DateTime startDate = DateTime.UtcNow;
         UIDocument _uiDoc = null;
@@ -32,10 +32,10 @@ namespace POC
             _doc = _uiDoc.Document;
             int.TryParse(uiApp.Application.VersionNumber, out int RevitVersion);
             string offsetVariable = RevitVersion < 2020 ? "Offset" : "Middle Elevation";
-
+            
             //List<Element> elements1 = Utility.GetPickedElements(_uiDoc, "trail", typeof(Conduit), true);
 
-
+            
             //return;
             try
             {
@@ -100,7 +100,7 @@ namespace POC
                 else
                 {
                     Level lvl = (_doc.GetElement(_doc.ActiveView.GenLevel.Id)) as Level;
-                    _minLevel = lvl.Elevation;
+                     _minLevel = lvl.Elevation;
                     List<Element> LvlCollection = new FilteredElementCollector(_doc).OfClass(typeof(Autodesk.Revit.DB.Level)).ToList();
                     if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().Any(r => (r as Level).Elevation > _minLevel))
                     {
@@ -142,9 +142,8 @@ namespace POC
                                                 .Cast<ViewFamilyType>()
                                                 .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
 
-                    List<Element> GridCollection = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(Autodesk.Revit.DB.Grid)).ToList();
-                    RecursiveLoopForBoundingBox(elementGroupByOrder.ChildGroup, GridCollection);
 
+                    RecursiveLoopForPlaceSectionView(elementGroupByOrder, viewFamilyType);
 
 
                     transaction.Commit();
@@ -157,309 +156,134 @@ namespace POC
 
 
         }
-
-        private void RecursiveLoopForBoundingBox(List<ElementGroupByOrder> childGroup, List<Element> GridCollection, int parentCout=0)
+        private void RecursiveLoopForPlaceSectionView(ElementGroupByOrder elementGroupByOrder, ViewFamilyType viewFamilyType, ViewSection parentViewSection = null, bool isCheckOnBanch = false)
         {
-            if (childGroup != null)
+            ViewSection viewSection = CreateViewSection(elementGroupByOrder.CurrentElement, viewFamilyType);
+            elementGroupByOrder.ViewSection = viewSection;
+            if (isCheckOnBanch && parentViewSection != null)
             {
-                XYZ startPoint = null;
-                int i = 0;
-
-
-                foreach (ElementGroupByOrder child in childGroup)
+                XYZ orgin = Utility.GetXYvalue(parentViewSection.Origin);
+                SortedDictionary<double, XYZ> pairs = new SortedDictionary<double, XYZ>();
+                KeyValuePair<XYZ, XYZ> crossPoints = Utility.CrossProduct(elementGroupByOrder.CurrentElement[0], viewSection.Origin, 25, true);
+               // Utility.CreateConduit(_doc, elementGroupByOrder.CurrentElement[0], crossPoints.Key, crossPoints.Value);
+                Line crossLine = Line.CreateBound(crossPoints.Key, crossPoints.Value);
+                foreach (Element item in elementGroupByOrder.CurrentElement)
                 {
-                    if (child.CurrentElement.Count <= 2 )
-                        continue;
-
-                    //if(parentCout == child.CurrentElement.Count)
-                    //{
-                    //    RecursiveLoopForBoundingBox(child.ChildGroup, GridCollection, parentCout > 0 ? 0 : child.CurrentElement.Count);
-                    //    continue;
-                    //}
-                        XYZ midPoint = null;
-                    if (i == 0 || (i > 0 && startPoint != null))
+                    Line line = Utility.GetLineFromConduit(item, true);
+                    XYZ point = Utility.GetIntersection(crossLine, line);
+                    if (point != null)
                     {
-                        StrutFilterUsingBoundingBox(GridCollection, child.PreviousElement, startPoint, out midPoint);
-                        //Conduit conduit = Utility.CreateConduit(_doc, child.PreviousElement[0], Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
-                        //Utility.SetAlertColor(conduit.Id, _uiDoc);
-                    }
-                    if (child.ChildGroup != null && child.ChildGroup.Count > 0)
-                        RecursiveLoopForBoundingBox(child.ChildGroup, GridCollection, parentCout>0?0: child.CurrentElement.Count);
-                    else
-                    {
-
-                        StrutFilterUsingBoundingBox(GridCollection, child.CurrentElement, null, out XYZ newMidPoint);
-                        //Conduit conduit = Utility.CreateConduit(_doc, child.CurrentElement[0], Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
-                        //Utility.SetAlertColor(conduit.Id, _uiDoc);
-                        if (midPoint == null)
-                            StrutFilterUsingBoundingBox(GridCollection, child.PreviousElement, null, out midPoint, true);
-                    }
-                    Line FinalLine = null;
-                    if (child.CurrentElement.Count >= 2)
-                    {
-
-                        Element firstElement = null;
-                        Element lastElement = null;
-                        if (child.CurrentElement.Count == 2)
+                        double dis = viewSection.Origin.DistanceTo(point);
+                        if (!pairs.Any(x => x.Key == dis))
                         {
-                            firstElement = child.CurrentElement.FirstOrDefault();
-                            lastElement = child.CurrentElement.LastOrDefault();
+                            pairs.Add(dis, point);
                         }
-                        else
-                        {
-                            List<Element> elements = Utility.OrderTheConduit(child.CurrentElement);
-                            firstElement = elements.FirstOrDefault();
-                            lastElement = elements.LastOrDefault();
-                        }
-                        XYZ firstMidPoint = Utility.GetMidPoint(firstElement, true);
-                        XYZ lastMidPoint = Utility.GetMidPoint(lastElement, true);
-                        var firstCross = Utility.CrossProduct(firstElement, firstMidPoint, 20, true);
-                        Line firstLine = Line.CreateBound(firstCross.Key, firstCross.Value);
-                        firstCross = Utility.CrossProduct(firstLine, firstMidPoint, Utility.GetConduitLength(firstElement) * 2, true);
-                        firstLine = Line.CreateBound(firstCross.Key, firstCross.Value);
-                        // Utility.CreateConduit(_doc, child.PreviousElement[0], firstCross.Key, firstCross.Value);
-                        var lastCross = Utility.CrossProduct(lastElement, lastMidPoint, 20, true);
-                        Line lastLine = Line.CreateBound(lastCross.Key, lastCross.Value);
-                        lastCross = Utility.CrossProduct(lastLine, lastMidPoint, Utility.GetConduitLength(lastElement) * 2, true);
-                        lastLine = Line.CreateBound(lastCross.Key, lastCross.Value);
-                        //  Utility.CreateConduit(_doc, child.PreviousElement[0], lastCross.Key, lastCross.Value);
-                        var checkCross = Utility.CrossProduct(child.PreviousElement[0], midPoint, 20, true);
-                        Line checkLine = Line.CreateBound(checkCross.Key, checkCross.Value);
-                        checkCross = Utility.CrossProduct(checkLine, midPoint, 200, true);
-                        Line mainLine = Line.CreateBound(checkCross.Key, checkCross.Value);
-                        // Utility.CreateConduit(_doc, child.PreviousElement[0], checkCross.Key, checkCross.Value);
 
-                        XYZ firstPoint = Utility.GetIntersection(mainLine, firstLine);
-                        XYZ lastPoint = Utility.GetIntersection(mainLine, lastLine);
-                        FinalLine = midPoint.DistanceTo(firstPoint) > midPoint.DistanceTo(lastPoint) ? firstLine : lastLine;
                     }
-                    else
-                    {
-                        XYZ firstMidPoint = Utility.GetMidPoint(child.CurrentElement[0], true);
-                        var firstCross = Utility.CrossProduct(child.CurrentElement[0], firstMidPoint, 20, true);
-                        Line firstLine = Line.CreateBound(firstCross.Key, firstCross.Value);
-                        firstCross = Utility.CrossProduct(firstLine, firstMidPoint, Utility.GetConduitLength(child.CurrentElement[0]) * 2, true);
-                        FinalLine = Line.CreateBound(firstCross.Key, firstCross.Value);
-                        //Utility.CreateConduit(_doc, child.PreviousElement[0], FinalLine.GetEndPoint(0), FinalLine.GetEndPoint(1));
-                    }
-
-                    midPoint = (FinalLine.GetEndPoint(0) + FinalLine.GetEndPoint(1)) / 2;
-                    if (i != childGroup.Count - 1)
-                    {
-                        double distance = 100000000;
-                        foreach (Element e in childGroup[i + 1].PreviousElement)
-                        {
-                            Line cline = Utility.GetLineFromConduit(e, true);
-                            XYZ point = Utility.GetIntersection(cline, FinalLine);
-
-                            if (point != null && midPoint.DistanceTo(point) < distance)
-                            {
-                                distance = midPoint.DistanceTo(point);
-                                startPoint = point;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        List<Element> endElements = child.PreviousCurrentGroupElement.Where(x => !child.PreviousElement.Any(y => y.Id == x.Id)).ToList();
-                        //Utility.CreateConduit(_doc, child.PreviousElement[0], FinalLine.GetEndPoint(0), FinalLine.GetEndPoint(1));
-                        if (endElements != null && endElements.Count > 0)
-                        {
-                            double distance = 100000000;
-                            foreach (Element item in endElements)
-                            {
-                                Line cline = Utility.GetLineFromConduit(item, true);
-                                XYZ point = Utility.GetIntersection(cline, FinalLine);
-
-                                if (point != null && midPoint.DistanceTo(point) < distance)
-                                {
-                                    distance = midPoint.DistanceTo(point);
-                                    startPoint = point;
-                                }
-                            }
-                            if (startPoint != null)
-                            {
-
-                                if (!StrutFilterUsingBoundingBox(GridCollection, endElements, startPoint, out midPoint))
-                                {
-                                    i++;
-                                    continue;
-                                }
-                                //Conduit conduit = Utility.CreateConduit(_doc, child.PreviousElement[0], Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
-                                //Utility.SetAlertColor(conduit.Id, _uiDoc);
-                            }
-                        }
-                    }
-                    i++;
                 }
-            }
-        }
-        private bool StrutFilterUsingBoundingBox(List<Element> GridCollection, List<Element> elements, XYZ startPoint, out XYZ midPoint, bool uptoMidpoint = false)
-        {
-           
-            List<XYZ> minList = new List<XYZ>();
-            List<XYZ> maxList = new List<XYZ>();
-            foreach (Element ele in elements)
-            {
-                var refcon = Reference.ParseFromStableRepresentation(_doc, ele.UniqueId);
-                BoundingBoxXYZ bx = ele.get_BoundingBox(_doc.ActiveView);
-                minList.Add(bx.Min);
-                maxList.Add(bx.Max);
-            }
-            minList.OrderByDescending(p => p.X).ThenBy(t => t.Y).ToList();
-            maxList.OrderBy(p => p.X).ThenBy(t => t.Y).ToList();
-            XYZ point1 = startPoint == null ? new XYZ(minList.OrderBy(p => p.X).First().X, minList.OrderBy(p => p.Y).First().Y, 0) : startPoint;
-            XYZ point2 = new XYZ(maxList.OrderByDescending(p => p.X).First().X, maxList.OrderByDescending(p => p.Y).First().Y, 0);
-            midPoint = (point1 + point2) / 2;
-            double minZ = minList.OrderBy(p => p.Z).First().Z;
-            double maxZ = maxList.OrderByDescending(p => p.Z).First().Z;
-            if (uptoMidpoint == true)
-                return true;
-            try
-            {
-                BoundingBoxXYZ box = new BoundingBoxXYZ();
-                box.Max = Utility.SetZvalue(point1, null, minZ);
-                box.Min = Utility.SetZvalue(point2, null, maxZ);
-                Outline myOutLn = new Outline(Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
-                BoundingBoxIntersectsFilter filter = new BoundingBoxIntersectsFilter(myOutLn);
-                FilteredElementCollector collector = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
-                List<Element> elementsCollector = collector.OfClass(typeof(FamilyInstance)).WherePasses(filter).ToElements().ToList();
-                var s = elementsCollector.Where(x => Utility.GetFamilyInstanceName(x as FamilyInstance).ToLower().Contains("strut")).ToList();
-                if (s.Count > 0)
+                crossPoints = orgin.DistanceTo(pairs.First().Value) > orgin.DistanceTo(pairs.Last().Value) ?
+                                    Utility.CrossProduct(crossLine, pairs.First().Value, 25, true) : Utility.CrossProduct(crossLine, pairs.Last().Value, 25, true);
+                Line line1 = Line.CreateBound(crossPoints.Key, crossPoints.Value);
+             // Utility.CreateConduit(_doc, elementGroupByOrder.CurrentElement[0], crossPoints.Key, crossPoints.Value);
+                KeyValuePair<XYZ, XYZ> crossPoints1 = Utility.CrossProduct(line1, orgin, 300, true);
+                SortedDictionary<double, XYZ> pairs2 = new SortedDictionary<double, XYZ>();
+                XYZ point1 = Utility.GetIntersection(Line.CreateBound(crossPoints1.Key, crossPoints1.Value), line1);
+                if (point1 != null)
                 {
-                    double val = (double)s.Count() / (double)2;
-                    int index = Convert.ToInt32(Math.Ceiling(val));
-                    GetShortestGridLine(GridCollection, s[index - 1]);
-                    return true;
+                    XYZ midpoint = pairs.First().Value;
+                    KeyValuePair<XYZ, XYZ> crossPoint31 = Utility.CrossProduct(line1, midpoint, 1, true);
+                  //  Utility.CreateConduit(_doc, elementGroupByOrder.CurrentElement[0], crossPoint31.Key, crossPoint31.Value);
+                    foreach (Element item in elementGroupByOrder.PreviousGroupElement)
+                    {
+                        Line line = Utility.GetLineFromConduit(item, true);
+                        XYZ point = Utility.GetIntersection(line1, line);
+                        if (point != null)
+                        {
+                            double dis = midpoint.DistanceTo(point);
+                            if (!pairs2.Any(x => x.Key == dis))
+                            {
+                                pairs2.Add(dis, point);
+                            }
+
+                        }
+                    }
+                    
+                    ViewSection viewSectionForSpliter = CreateViewSection(elementGroupByOrder.PreviousGroupElement, viewFamilyType, pairs2.First().Value, orgin);
+                }
+                else
+                {
+                    return;
                 }
 
             }
-            catch (Exception)
+            if (elementGroupByOrder.ChildGroup != null && elementGroupByOrder.ChildGroup.Count > 0)
             {
-
-                return false;
+                RecursiveLoopForChild(elementGroupByOrder, viewFamilyType);
             }
-            return false;
         }
-        private void GetShortestGridLine(List<Element> GridCollection, Element strut)
+
+        private void RecursiveLoopForChild(ElementGroupByOrder elementGroupByOrder, ViewFamilyType viewFamilyType)
         {
-            double distance = 10000;
-            Line line = null;
-
-            foreach (Element grid in GridCollection)
+            int j = 0;
+            foreach (ElementGroupByOrder item in elementGroupByOrder.ChildGroup)
             {
-                Line gridLine = (grid as Autodesk.Revit.DB.Grid).Curve as Line;
-                XYZ gridDirection = gridLine.Direction;
-
-                Options options = new Options
+                item.PreviousGroupElement = elementGroupByOrder.CurrentElement;
+                bool isDifElevation = false;
+                foreach (Element E in item.CurrentElement)
                 {
-                    ComputeReferences = true,
-                    View = _doc.ActiveView,
-                    IncludeNonVisibleObjects = true
-                };
-                GeometryElement GeoEle = strut.get_Geometry(options);
-
-                foreach (GeometryObject obj in GeoEle)
-                {
-                    if (obj.GetType() == typeof(Line))
+                    Line line = Utility.GetLineFromConduit(E);
+                    if (Math.Round(line.GetEndPoint(0).Z, 4) != Math.Round(line.GetEndPoint(1).Z, 4))
                     {
-                        Line strutLine = obj as Line;
-                        XYZ strutDirection = strutLine.Direction;
-                        XYZ strutLocationPoint = (strut.Location as LocationPoint).Point;
-                        XYZ cross = strutDirection.CrossProduct(XYZ.BasisZ);
-                        Line perpendicularLine = Line.CreateBound(strutLocationPoint, strutLocationPoint + cross.Multiply(10));
-                        if (Utility.IsSameDirection(gridDirection, perpendicularLine.Direction))
-                        {
-                            XYZ interSectionPoint = Utility.FindIntersectionPoint(strutLine, gridLine);
-                            if (interSectionPoint != null && strutLocationPoint.DistanceTo(interSectionPoint) < distance)
-                            {
-                                distance = strutLocationPoint.DistanceTo(interSectionPoint);
-                                line = Line.CreateBound(strutLocationPoint, interSectionPoint);
-
-                            }
-                        }
+                        isDifElevation = true;
                         break;
                     }
 
                 }
-            }
-            CreateSectionView(strut, line);
-        }
-
-        private void CreateSectionView(Element strut, Line line)
-        {
-
-            double strutLength = strut.LookupParameter("STRUT LENGTH").AsDouble();
-            XYZ abshandorienation = new XYZ();
-            XYZ handorienation = (strut as FamilyInstance).HandOrientation;
-            if ((Math.Sign(handorienation.X) == 1 && Math.Sign(handorienation.Y) == 1) || (Math.Sign(handorienation.X) == -1 && Math.Sign(handorienation.Y) == -1))
-            {
-                abshandorienation = new XYZ(Math.Abs(handorienation.X), Math.Abs(handorienation.Y), Math.Abs(handorienation.Z));
-            }
-            else if (Math.Sign(handorienation.X) == -1 && Math.Sign(handorienation.Y) == 1)
-            {
-                abshandorienation = new XYZ(handorienation.X, Math.Abs(handorienation.Y), Math.Abs(handorienation.Z));
-            }
-            else
-            {
-                abshandorienation = new XYZ(-Math.Abs(handorienation.X), Math.Abs(handorienation.Y), Math.Abs(handorienation.Z));
-            }
-
-
-
-            Level lvl = (_doc.GetElement(_doc.ActiveView.GenLevel.Id)) as Level;
-            double lvlelev = lvl.Elevation;
-
-            double maxlvlelev = 0;
-            List<Element> LvlCollection = new FilteredElementCollector(_doc).OfClass(typeof(Autodesk.Revit.DB.Level)).ToList();
-            if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().Any(r => (r as Level).Elevation > lvlelev))
-            {
-                if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().LastOrDefault(r => (r as Level).Elevation > lvlelev) is Level abovelevel)
+                if (item.CurrentElement.Count > 2 && (elementGroupByOrder.CurrentElement.Count != item.CurrentElement.Count || isDifElevation) && j < elementGroupByOrder.ChildGroup.Count - 1)
                 {
-                    maxlvlelev = abovelevel.Elevation;
+                    if (item.RunElements.TrueForAll(x => x.Any(y => y is FamilyInstance && Utility.GetFamilyInstancePartType(y) == "union")))
+                    {
+                        int i = 0;
+                        foreach (List<Element> e in item.RunElements)
+                        {
+                            int index = e.FindIndex(y => y is FamilyInstance && Utility.GetFamilyInstancePartType(y) == "elbow");
+                            if (index == -1)
+                                i = i + e.Count(x => x is Conduit);
+                            else
+                            {
+                                i = i + e.Take(index).Count(x => x is Conduit);
+                            }
+                        }
+                        if (i == item.CurrentElement.Count && (item.ChildGroup == null || item.ChildGroup.Count == 0))
+                            continue;
+                        else if (i == item.CurrentElement.Count && item.ChildGroup.Count > 0)
+                        {
+                            foreach (ElementGroupByOrder ch in item.ChildGroup)
+                            {
+                                if (ch.CurrentElement.Count > 2)
+                                    RecursiveLoopForPlaceSectionView(ch, viewFamilyType);
+                            }
+                            //RecursiveLoopForChild(item.ChildGroup, elementGroupByOrder, viewFamilyType);
+                            continue;
+
+                        }
+                    }
+                    RecursiveLoopForPlaceSectionView(item, viewFamilyType, elementGroupByOrder.ViewSection, j < elementGroupByOrder.ChildGroup.Count - 1);
                 }
+                else if (item.ChildGroup != null && item.ChildGroup.Count > 0)
+                {
+                    foreach (ElementGroupByOrder ch in item.ChildGroup)
+                    {
+                        if (ch.CurrentElement.Count > 2)
+                            RecursiveLoopForPlaceSectionView(ch, viewFamilyType);
+                    }
+                    continue;
+                }
+                j++;
+
             }
-
-            double elevationdiff = maxlvlelev - lvlelev + 1;
-
-            double h = elevationdiff;
-
-            double w = strutLength / 2 + line.Length;
-            double offset = 0.125;
-
-            BoundingBoxXYZ boxXYZ = strut.get_BoundingBox(null);
-
-
-            XYZ maxPt = new XYZ(w, h / 2, 0);
-            XYZ minPt = new XYZ(-w, -h / 2, -offset * 3);
-            XYZ pt1 = new XYZ(boxXYZ.Max.X, boxXYZ.Max.Y, maxlvlelev);
-            XYZ pt2 = new XYZ(boxXYZ.Min.X, boxXYZ.Min.Y, lvlelev);
-            XYZ middle = ((pt1 + pt2) / 2);
-
-            XYZ edir = abshandorienation.Normalize();
-            XYZ up = XYZ.BasisZ;
-            XYZ viewdir = edir.CrossProduct(up);
-
-            //create transform
-            // tried here
-            Transform transform = Transform.Identity;
-
-            transform.BasisX = edir;
-            transform.BasisY = up;
-            transform.BasisZ = viewdir;
-            transform.Origin = middle;
-
-            // crate bounding box for section view
-            BoundingBoxXYZ box = new BoundingBoxXYZ();
-            box.Max = maxPt;
-            box.Min = minPt;
-            box.Transform = transform;
-            ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                          .OfClass(typeof(ViewFamilyType))
-                          .Cast<ViewFamilyType>()
-                          .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
-            ViewSection sectionview = ViewSection.CreateSection(_doc, viewFamilyType.Id, box);
         }
+
 
         private ElementGroupByOrder RecursiveLoopForFindTheBranchInOrder(Dictionary<int, List<ConduitGrid>> conduitGridDictionary, ElementGroupByOrder elementGroupByOrder)
         {
@@ -481,24 +305,13 @@ namespace POC
                     objGroup.CurrentElement = elements1.OrderBy(x => x.LookupParameter("Length").AsDouble()).ToList();
                     if (objGroup.RunElements == null)
                         objGroup.RunElements = new List<List<Element>>();
-                    objGroup.PreviousElement = new List<Element>();
                     foreach (List<Element> runEle in elementGroupByOrder.RunElements.Where(x => x.Any(y => elements1.Any(z => z.Id == y.Id))).ToList())
                     {
                         int ix = runEle.FindIndex(n => n is FamilyInstance && Utility.GetFamilyInstancePartType(n) == "elbow");
-                        objGroup.PreviousElement.Add(runEle[ix - 1]);
                         List<Element> ele = runEle.Skip(ix + 1).ToList();
                         if (ele.Count > 0)
-                        {
                             objGroup.RunElements.Add(ele);
-                        }
                     }
-                    objGroup.PreviousGroupElement = new List<Element>();
-                    objGroup.PreviousGroupElement.AddRange(elementGroupByOrder.CurrentElement);
-                    objGroup.PreviousCurrentGroupElement = new List<Element>();
-                    if (elementGroupByOrder.ChildGroup != null && elementGroupByOrder.ChildGroup.Count > 0)
-                        objGroup.PreviousCurrentGroupElement.AddRange(elementGroupByOrder.CurrentElement.Where(x => !elementGroupByOrder.ChildGroup[elementGroupByOrder.ChildGroup.Count - 1].PreviousElement.Any(y => y.Id == x.Id)));
-                    else
-                        objGroup.PreviousCurrentGroupElement.AddRange(elementGroupByOrder.CurrentElement);
                     if (elementGroupByOrder.ChildGroup == null)
                         elementGroupByOrder.ChildGroup = new List<ElementGroupByOrder>();
                     elementGroupByOrder.ChildGroup.Add(objGroup);
@@ -543,15 +356,15 @@ namespace POC
             double maxZ = maxList.OrderByDescending(p => p.Z).First().Z;
             if (newPoint != null)
             {
-                point2 = orgin.DistanceTo(point1) > orgin.DistanceTo(point2) ? point1 : point2;
-                point1 = newPoint;
+                point2= orgin.DistanceTo(point1) > orgin.DistanceTo(point2) ? point1 : point2;
+                point1= newPoint;
             }
             double dis = point1.DistanceTo(point2) / 2;
             KeyValuePair<XYZ, XYZ> crossPoints3 = Utility.CrossProduct(elements[0], (point1 + point2) / 2, 5);
             //if (newPoint != null)
             //{
             //    Utility.CreateConduit(_doc, elements[0], point1, point2);
-            //Utility.CreateConduit(_doc, elements[0], crossPoints3.Key, crossPoints3.Value);
+                //Utility.CreateConduit(_doc, elements[0], crossPoints3.Key, crossPoints3.Value);
             //}
             XYZ p = crossPoints3.Key;
             XYZ q = crossPoints3.Value;
@@ -595,8 +408,8 @@ namespace POC
                     transaction.Commit();
                     return viewSection;
                 }
-                KeyValuePair<XYZ, XYZ> crossPoints4 = Utility.CrossProduct(elements[0], new XYZ(viewSection.Origin.X, viewSection.Origin.Y, 0), 25, true);
-                //Utility.CreateConduit(_doc, elements[0] as Conduit, crossPoints4.Key, crossPoints4.Value);
+                   KeyValuePair<XYZ, XYZ> crossPoints4 = Utility.CrossProduct(elements[0], new XYZ(viewSection.Origin.X, viewSection.Origin.Y, 0), 25, true);
+                 //Utility.CreateConduit(_doc, elements[0] as Conduit, crossPoints4.Key, crossPoints4.Value);
                 Line createLine = Line.CreateBound(crossPoints4.Key, crossPoints4.Value);
                 XYZ previousXYZ = null;
                 int i = 0;
@@ -975,3 +788,9 @@ namespace POC
     }
 }
 
+public class LineCollection
+{
+    public XYZ start { get { return line.GetEndPoint(0); } }
+    public XYZ end { get { return line.GetEndPoint(1); } }
+    public Line line { get; set; }
+}

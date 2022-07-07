@@ -126,6 +126,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonControl\Class\CommonObject.cs" />
     <Compile Include="CommonControl\Class\BaseClass.cs" />
     <Compile Include="CommonControl\Class\ConGrid.cs" />
     <Compile Include="CommonControl\Class\CustomUIApplication.cs" />
@@ -228,9 +229,10 @@
     <Compile Include="RevitAPI\APIClasses\Command.cs" />
     <Compile Include="RevitAPI\APICommon\Common.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler - BACKUP.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler - 2006.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler_FilledRegion.cs" />
-    <Compile Include="RevitAPI\APIHandler\SampleHandler-1106backup.cs" />
+    <Compile Include="RevitAPI\APIHandler\SampleHandler-whiteSpace.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="CommonControl\Controls\Inputs\ColorPicker\ColorPicker.xaml">
