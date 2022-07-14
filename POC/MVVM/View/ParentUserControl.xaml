@@ -20,7 +20,11 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Button Content="Click" Click="Button_Click"></Button>
-  
+        <StackPanel Orientation="Vertical">
+        <Button Content="SectionView"
+                Click="Button_Click"></Button>
+        <Button Content="Strut" x:Name="btnStrut"
+                Click="btnStrut_Click"></Button>
+        </StackPanel>
     </Grid>
 </UserControl>

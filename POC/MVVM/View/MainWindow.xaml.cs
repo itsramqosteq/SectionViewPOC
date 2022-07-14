@@ -72,7 +72,8 @@ namespace POC
         private void InitializeHandlers()
         {
 
-            _externalEvents.Add(ExternalEvent.Create(new SampleHandler()));
+            _externalEvents.Add(ExternalEvent.Create(new SectionViewHandler()));
+            _externalEvents.Add(ExternalEvent.Create(new StrutHandler()));
 
         }
 

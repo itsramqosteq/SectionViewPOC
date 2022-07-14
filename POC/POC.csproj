@@ -230,7 +230,9 @@
     <Compile Include="RevitAPI\APICommon\Common.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler - BACKUP.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler - 2006.cs" />
-    <Compile Include="RevitAPI\APIHandler\SampleHandler.cs" />
+    <Compile Include="RevitAPI\APIHandler\SectionViewHandler - Copy.cs" />
+    <Compile Include="RevitAPI\APIHandler\StrutHandler.cs" />
+    <Compile Include="RevitAPI\APIHandler\SectionViewHandler.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler_FilledRegion.cs" />
     <Compile Include="RevitAPI\APIHandler\SampleHandler-whiteSpace.cs" />
   </ItemGroup>

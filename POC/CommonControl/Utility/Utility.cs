@@ -133,7 +133,13 @@ namespace POC
         public static bool IsDifferentElevation(Line line)
         {
             double zValue = Math.Round(line.Direction.Z, 5);
-            return (zValue == 1 || zValue == -1 || zValue == 0);
+            return !(zValue == 1 || zValue == -1 || zValue == 0);
+        }
+        public static bool IsDifferentElevation(Element element)
+        {
+            Line line = GetLineFromConduit(element);
+            double zValue = Math.Round(line.Direction.Z, 5);
+            return !(zValue == 1 || zValue == -1 || zValue == 0);
         }
         public static bool IsXYZTrue(XYZ value1, XYZ value2)
         {
@@ -169,6 +175,46 @@ namespace POC
         }
         #endregion
         #region CrossProduct
+        public static Line CrossProductLine(Line line, XYZ point, Double multiply, bool setZvalueZero = false)
+        {
+            XYZ directionForward = line.Direction;
+            XYZ directionBackward = (-1) * directionForward;
+            directionForward = point + directionForward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            directionBackward = point + directionBackward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            if (setZvalueZero)
+                return Line.CreateBound(GetXYvalue(directionForward), GetXYvalue(directionBackward));
+            else
+                return Line.CreateBound(directionForward, directionBackward);
+
+        }
+        public static Line CrossProductLine(Element element, XYZ point, Double multiply, bool setZvalueZero = false)
+        {
+
+            XYZ directionForward = GetLineFromConduit(element, setZvalueZero).Direction;
+            XYZ directionBackward = (-1) * directionForward;
+            directionForward = point + directionForward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            directionBackward = point + directionBackward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            if (setZvalueZero)
+                return Line.CreateBound(GetXYvalue(directionForward), GetXYvalue(directionBackward));
+            else
+                return Line.CreateBound(directionForward, directionBackward);
+
+        }
+
+        public static Line CrossProductLine(Conduit conduit, XYZ point, Double multiply, bool setZvalueZero = false)
+        {
+
+            XYZ directionForward = GetLineFromConduit(conduit, setZvalueZero).Direction;
+            XYZ directionBackward = (-1) * directionForward;
+            directionForward = point + directionForward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            directionBackward = point + directionBackward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            if (setZvalueZero)
+                return Line.CreateBound(GetXYvalue(directionForward), GetXYvalue(directionBackward));
+            else
+                return  Line.CreateBound(directionForward, directionBackward);
+
+        }
+
         public static KeyValuePair<XYZ, XYZ> CrossProduct(Line line, XYZ point, Double multiply, bool setZvalueZero = false)
         {
             XYZ directionForward = line.Direction;
@@ -194,6 +240,7 @@ namespace POC
                     return new KeyValuePair<XYZ, XYZ>(directionForward, directionBackward);
 
         }
+
         public static KeyValuePair<XYZ, XYZ> CrossProduct(Conduit conduit, XYZ point, Double multiply, bool setZvalueZero = false)
         {
 

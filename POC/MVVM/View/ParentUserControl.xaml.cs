@@ -60,6 +60,11 @@ namespace POC
         {
             _externalEvents[0].Raise();
         }
+
+        private void btnStrut_Click(object sender, RoutedEventArgs e)
+        {
+            _externalEvents[1].Raise();
+        }
     }
 }
 

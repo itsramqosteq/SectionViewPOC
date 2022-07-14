@@ -16,7 +16,7 @@ namespace POC
 {
     [Transaction(TransactionMode.Manual)]
 
-    public class SampleHandler : IExternalEventHandler
+    public class SectionViewHandlerCopy : IExternalEventHandler
     {
         DateTime startDate = DateTime.UtcNow;
         UIDocument _uiDoc = null;
@@ -132,7 +132,6 @@ namespace POC
 
 
 
-
                 using (Transaction transaction = new Transaction(_doc))
                 {
                     transaction.Start("SampleHandler");
@@ -158,7 +157,7 @@ namespace POC
 
         }
 
-        private void RecursiveLoopForBoundingBox(List<ElementGroupByOrder> childGroup, List<Element> GridCollection, int parentCout=0)
+        private void RecursiveLoopForBoundingBox(List<ElementGroupByOrder> childGroup, List<Element> GridCollection, int parentCout = 0)
         {
             if (childGroup != null)
             {
@@ -168,7 +167,7 @@ namespace POC
 
                 foreach (ElementGroupByOrder child in childGroup)
                 {
-                    if (child.CurrentElement.Count <= 2 )
+                    if (child.CurrentElement.Count <= 2)
                         continue;
 
                     //if(parentCout == child.CurrentElement.Count)
@@ -176,23 +175,34 @@ namespace POC
                     //    RecursiveLoopForBoundingBox(child.ChildGroup, GridCollection, parentCout > 0 ? 0 : child.CurrentElement.Count);
                     //    continue;
                     //}
-                        XYZ midPoint = null;
+                    XYZ midPoint = null;
                     if (i == 0 || (i > 0 && startPoint != null))
                     {
+
+
                         StrutFilterUsingBoundingBox(GridCollection, child.PreviousElement, startPoint, out midPoint);
+
                         //Conduit conduit = Utility.CreateConduit(_doc, child.PreviousElement[0], Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
                         //Utility.SetAlertColor(conduit.Id, _uiDoc);
                     }
                     if (child.ChildGroup != null && child.ChildGroup.Count > 0)
-                        RecursiveLoopForBoundingBox(child.ChildGroup, GridCollection, parentCout>0?0: child.CurrentElement.Count);
+                    {
+                        RecursiveLoopForBoundingBox(child.ChildGroup, GridCollection, parentCout > 0 ? 0 : child.CurrentElement.Count);
+                        continue;
+                    }
                     else
                     {
 
                         StrutFilterUsingBoundingBox(GridCollection, child.CurrentElement, null, out XYZ newMidPoint);
                         //Conduit conduit = Utility.CreateConduit(_doc, child.CurrentElement[0], Utility.SetZvalue(point1, null, minZ), Utility.SetZvalue(point2, null, maxZ));
                         //Utility.SetAlertColor(conduit.Id, _uiDoc);
-                        if (midPoint == null)
+
+                        if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(child.PreviousElement[0])))
+                            StrutFilterUsingBoundingBox(GridCollection, child.SecondPreviousCurrentGroupElement, null, out midPoint, true);
+                        else if (midPoint == null)
                             StrutFilterUsingBoundingBox(GridCollection, child.PreviousElement, null, out midPoint, true);
+                        else
+                            continue;
                     }
                     Line FinalLine = null;
                     if (child.CurrentElement.Count >= 2)
@@ -217,21 +227,41 @@ namespace POC
                         Line firstLine = Line.CreateBound(firstCross.Key, firstCross.Value);
                         firstCross = Utility.CrossProduct(firstLine, firstMidPoint, Utility.GetConduitLength(firstElement) * 2, true);
                         firstLine = Line.CreateBound(firstCross.Key, firstCross.Value);
-                        // Utility.CreateConduit(_doc, child.PreviousElement[0], firstCross.Key, firstCross.Value);
+                        //   Utility.CreateConduit(_doc, child.PreviousElement[0], firstCross.Key, firstCross.Value);
                         var lastCross = Utility.CrossProduct(lastElement, lastMidPoint, 20, true);
                         Line lastLine = Line.CreateBound(lastCross.Key, lastCross.Value);
                         lastCross = Utility.CrossProduct(lastLine, lastMidPoint, Utility.GetConduitLength(lastElement) * 2, true);
                         lastLine = Line.CreateBound(lastCross.Key, lastCross.Value);
                         //  Utility.CreateConduit(_doc, child.PreviousElement[0], lastCross.Key, lastCross.Value);
-                        var checkCross = Utility.CrossProduct(child.PreviousElement[0], midPoint, 20, true);
-                        Line checkLine = Line.CreateBound(checkCross.Key, checkCross.Value);
-                        checkCross = Utility.CrossProduct(checkLine, midPoint, 200, true);
-                        Line mainLine = Line.CreateBound(checkCross.Key, checkCross.Value);
-                        // Utility.CreateConduit(_doc, child.PreviousElement[0], checkCross.Key, checkCross.Value);
-
+                        Line mainLine = null;
+                        if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(child.PreviousElement[0])))
+                        {
+                            //Utility.CreateConduit(_doc, child.PreviousElement[0], firstCross.Key, firstCross.Value);
+                            //Utility.CreateConduit(_doc, child.PreviousElement[0], lastCross.Key, lastCross.Value);
+                            var checkCross = Utility.CrossProduct(child.SecondPreviousCurrentGroupElement[0], midPoint, 20, true);
+                            Line checkLine = Line.CreateBound(checkCross.Key, checkCross.Value);
+                            checkCross = Utility.CrossProduct(checkLine, midPoint, 200, true);
+                            mainLine = Line.CreateBound(checkCross.Key, checkCross.Value);
+                            //Utility.CreateConduit(_doc, child.PreviousElement[0], checkCross.Key, checkCross.Value);
+                        }
+                        else
+                        {
+                            var checkCross = Utility.CrossProduct(child.PreviousElement[0], midPoint, 20, true);
+                            Line checkLine = Line.CreateBound(checkCross.Key, checkCross.Value);
+                            checkCross = Utility.CrossProduct(checkLine, midPoint, 200, true);
+                            mainLine = Line.CreateBound(checkCross.Key, checkCross.Value);
+                            // Utility.CreateConduit(_doc, child.PreviousElement[0], checkCross.Key, checkCross.Value);
+                        }
                         XYZ firstPoint = Utility.GetIntersection(mainLine, firstLine);
                         XYZ lastPoint = Utility.GetIntersection(mainLine, lastLine);
-                        FinalLine = midPoint.DistanceTo(firstPoint) > midPoint.DistanceTo(lastPoint) ? firstLine : lastLine;
+                        if (firstPoint != null && lastPoint != null)
+                        {
+                            FinalLine = midPoint.DistanceTo(firstPoint) > midPoint.DistanceTo(lastPoint) ? firstLine : lastLine;
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                     else
                     {
@@ -261,7 +291,13 @@ namespace POC
                     }
                     else
                     {
-                        List<Element> endElements = child.PreviousCurrentGroupElement.Where(x => !child.PreviousElement.Any(y => y.Id == x.Id)).ToList();
+                        List<Element> endElements = new List<Element>();
+                        if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(child.PreviousElement[0])))
+                            endElements = child.SecondPreviousCurrentGroupElement.Where(x => !child.PreviousElement.Any(y => y.Id == x.Id)).ToList();
+                        else
+                            endElements = child.PreviousCurrentGroupElement.Where(x => !child.PreviousElement.Any(y => y.Id == x.Id)).ToList();
+
+
                         //Utility.CreateConduit(_doc, child.PreviousElement[0], FinalLine.GetEndPoint(0), FinalLine.GetEndPoint(1));
                         if (endElements != null && endElements.Count > 0)
                         {
@@ -296,7 +332,7 @@ namespace POC
         }
         private bool StrutFilterUsingBoundingBox(List<Element> GridCollection, List<Element> elements, XYZ startPoint, out XYZ midPoint, bool uptoMidpoint = false)
         {
-           
+
             List<XYZ> minList = new List<XYZ>();
             List<XYZ> maxList = new List<XYZ>();
             foreach (Element ele in elements)
@@ -311,6 +347,8 @@ namespace POC
             XYZ point1 = startPoint == null ? new XYZ(minList.OrderBy(p => p.X).First().X, minList.OrderBy(p => p.Y).First().Y, 0) : startPoint;
             XYZ point2 = new XYZ(maxList.OrderByDescending(p => p.X).First().X, maxList.OrderByDescending(p => p.Y).First().Y, 0);
             midPoint = (point1 + point2) / 2;
+            if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(elements[0])))
+                return true;
             double minZ = minList.OrderBy(p => p.Z).First().Z;
             double maxZ = maxList.OrderByDescending(p => p.Z).First().Z;
             if (uptoMidpoint == true)
@@ -329,7 +367,7 @@ namespace POC
                 {
                     double val = (double)s.Count() / (double)2;
                     int index = Convert.ToInt32(Math.Ceiling(val));
-                    GetShortestGridLine(GridCollection, s[index - 1]);
+                    GetShortestGridLine(GridCollection, s[index - 1], elements[0]);
                     return true;
                 }
 
@@ -341,7 +379,7 @@ namespace POC
             }
             return false;
         }
-        private void GetShortestGridLine(List<Element> GridCollection, Element strut)
+        private void GetShortestGridLine(List<Element> GridCollection, Element strut, Element elements)
         {
             double distance = 10000;
             Line line = null;
@@ -368,6 +406,7 @@ namespace POC
                         XYZ strutLocationPoint = (strut.Location as LocationPoint).Point;
                         XYZ cross = strutDirection.CrossProduct(XYZ.BasisZ);
                         Line perpendicularLine = Line.CreateBound(strutLocationPoint, strutLocationPoint + cross.Multiply(10));
+                        //Utility.CreateConduit(_doc, elements, perpendicularLine.GetEndPoint(0), perpendicularLine.GetEndPoint(1));
                         if (Utility.IsSameDirection(gridDirection, perpendicularLine.Direction))
                         {
                             XYZ interSectionPoint = Utility.FindIntersectionPoint(strutLine, gridLine);
@@ -383,7 +422,13 @@ namespace POC
 
                 }
             }
-            CreateSectionView(strut, line);
+            if (strut != null)
+                CreateSectionView(strut, line);
+            else
+            {
+                CreateSectionView(strut, null);
+
+            }
         }
 
         private void CreateSectionView(Element strut, Line line)
@@ -424,7 +469,7 @@ namespace POC
 
             double h = elevationdiff;
 
-            double w = strutLength / 2 + line.Length;
+            double w = strutLength / 2 + (line ==null ? (strutLength/3) : line.Length);
             double offset = 0.125;
 
             BoundingBoxXYZ boxXYZ = strut.get_BoundingBox(null);
@@ -463,7 +508,7 @@ namespace POC
 
         private ElementGroupByOrder RecursiveLoopForFindTheBranchInOrder(Dictionary<int, List<ConduitGrid>> conduitGridDictionary, ElementGroupByOrder elementGroupByOrder)
         {
-
+            bool isHavingChildGroup = false;
             for (int k = 0; k < elementGroupByOrder.RunElements.Count; k++)
             {
 
@@ -471,7 +516,23 @@ namespace POC
                 List<Element> e = elementGroupByOrder.RunElements[orderIndex];
                 int index = e.FindIndex(n => n is FamilyInstance && Utility.GetFamilyInstancePartType(n) == "elbow");
                 if (index == -1)
-                    continue;
+                {
+                    if (k == elementGroupByOrder.RunElements.Count - 1 && isHavingChildGroup && conduitGridDictionary.Count > 0)
+                    {
+
+                        foreach (ElementGroupByOrder item in elementGroupByOrder.ChildGroup)
+                        {
+                            if (item.ChildGroup == null)
+                                item.ChildGroup = new List<ElementGroupByOrder>();
+
+                            ElementGroupByOrder updateChild = RecursiveLoopForFindTheBranchInOrder(conduitGridDictionary, item);
+                        }
+                        return elementGroupByOrder;
+                    }
+                    else
+                        continue;
+                }
+
                 Element nextElement = e[index + 1];
                 KeyValuePair<int, List<ConduitGrid>> obj = conduitGridDictionary.ToList().FirstOrDefault(x => x.Value.Any(y => y.Conduit.Id == nextElement.Id));
                 if (!obj.Equals(new KeyValuePair<int, List<ConduitGrid>>()))
@@ -499,19 +560,21 @@ namespace POC
                         objGroup.PreviousCurrentGroupElement.AddRange(elementGroupByOrder.CurrentElement.Where(x => !elementGroupByOrder.ChildGroup[elementGroupByOrder.ChildGroup.Count - 1].PreviousElement.Any(y => y.Id == x.Id)));
                     else
                         objGroup.PreviousCurrentGroupElement.AddRange(elementGroupByOrder.CurrentElement);
+
+                    objGroup.SecondPreviousCurrentGroupElement = elementGroupByOrder.PreviousCurrentGroupElement;
                     if (elementGroupByOrder.ChildGroup == null)
                         elementGroupByOrder.ChildGroup = new List<ElementGroupByOrder>();
                     elementGroupByOrder.ChildGroup.Add(objGroup);
+                    isHavingChildGroup = true;
                     conduitGridDictionary.Remove(obj.Key);
                     if (elements1.Count == 1)
                         break;
                 }
-                if (k == elementGroupByOrder.RunElements.Count - 1 && elementGroupByOrder.ChildGroup != null)
+                if (k == elementGroupByOrder.RunElements.Count - 1 && elementGroupByOrder.ChildGroup != null && conduitGridDictionary.Count > 0)
                 {
                     List<ElementGroupByOrder> list = new List<ElementGroupByOrder>();
                     foreach (ElementGroupByOrder item in elementGroupByOrder.ChildGroup)
                     {
-
                         ElementGroupByOrder updateChild = RecursiveLoopForFindTheBranchInOrder(conduitGridDictionary, item);
                         list.Add(updateChild);
                     }

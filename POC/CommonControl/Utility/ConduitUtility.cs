@@ -38,7 +38,15 @@ namespace POC
         {
             return conduits.OrderBy(x => x.LookupParameter("Length").AsDouble()).FirstOrDefault();
         }
+        public static Element GetMinLengthConduit(List<Element> conduits)
+        {
+            return conduits.OrderBy(x => x.LookupParameter("Length").AsDouble()).FirstOrDefault();
+        }
         public static Conduit GetMaxLengthConduit(List<Conduit> conduits)
+        {
+            return conduits.OrderByDescending(x => x.LookupParameter("Length").AsDouble()).FirstOrDefault();
+        }
+        public static Element GetMaxLengthConduit(List<Element> conduits)
         {
             return conduits.OrderByDescending(x => x.LookupParameter("Length").AsDouble()).FirstOrDefault();
         }
@@ -55,6 +63,33 @@ namespace POC
             Line conduitLine = (conduit.Location as LocationCurve).Curve as Line;
             startPoint = conduitLine.GetEndPoint(0);
             endPoint = conduitLine.GetEndPoint(1);
+        }
+        public static Conduit CreateConduit(Document doc, Conduit refConduit, Line line)
+        {
+            ElementId condtypeId = refConduit.GetTypeId();
+            ElementId referenceLevel = refConduit.LookupParameter("Reference Level").AsElementId();
+            double diameter = refConduit.LookupParameter("Diameter(Trade Size)").AsDouble();
+            Conduit newConduit = Conduit.Create(doc, condtypeId, line.GetEndPoint(0), line.GetEndPoint(1), referenceLevel);
+            Parameter diap = newConduit.LookupParameter("Diameter(Trade Size)");
+            diap.Set(diameter);
+            return newConduit;
+        }
+        public static Conduit CreateConduit(Document doc, Element refConduit, Line line)
+        {
+            if (refConduit is Conduit conduit)
+            {
+                ElementId condtypeId = conduit.GetTypeId();
+                ElementId referenceLevel = conduit.LookupParameter("Reference Level").AsElementId();
+                double diameter = conduit.LookupParameter("Diameter(Trade Size)").AsDouble();
+                Conduit newConduit = Conduit.Create(doc, condtypeId, line.GetEndPoint(0), line.GetEndPoint(1), referenceLevel);
+                Parameter diap = newConduit.LookupParameter("Diameter(Trade Size)");
+                diap.Set(diameter);
+                return newConduit;
+            }
+            else
+            {
+                return null;
+            }
         }
         public static Conduit CreateConduit(Document doc, Conduit refConduit, XYZ startPoint, XYZ endPoint)
         {
@@ -93,10 +128,10 @@ namespace POC
             Line line = GetLineFromConduit(conduit, setZvalueZero);
             return (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
         }
-        public static XYZ GetMidPoint(Line line)
+        public static XYZ GetMidPoint(Line line, bool setZvalueZero = false)
         {
-
-            return (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
+            XYZ midPoint = (line.GetEndPoint(0) + line.GetEndPoint(1)) / 2;
+            return setZvalueZero ? GetXYvalue(midPoint) : midPoint;
         }
         public static List<Element> OrderTheConduit(List<Element> conduitList)
         {
@@ -126,7 +161,7 @@ namespace POC
                     finalList.Add(midPoint.DistanceTo(point), new Tuple<XYZ, Element>(point, keyValue.Value.Item2));
                 }
             }
-           
+
             return finalList.Select(x => x.Value.Item2).ToList();
         }
         public static Conduit FindOuterConduit(List<Element> conduitlist)
