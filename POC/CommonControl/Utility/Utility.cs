@@ -141,6 +141,12 @@ namespace POC
             double zValue = Math.Round(line.Direction.Z, 5);
             return !(zValue == 1 || zValue == -1 || zValue == 0);
         }
+        public static bool IsDifferentElevation(Conduit element)
+        {
+            Line line = GetLineFromConduit(element);
+            double zValue = Math.Round(line.Direction.Z, 5);
+            return !(zValue == 1 || zValue == -1 || zValue == 0);
+        }
         public static bool IsXYZTrue(XYZ value1, XYZ value2)
         {
 
@@ -277,12 +283,13 @@ namespace POC
         }
         #endregion
         #region Color
-        public static void SetAlertColor(ElementId id, UIDocument _uidoc, Autodesk.Revit.DB.Color color = null)
+       
+        public static void SetAlertColor(ElementId id, UIDocument _uidoc, Autodesk.Revit.DB.Color color = null,Document _doc=null)
         {
 
             if (color == null)
                 color = new Autodesk.Revit.DB.Color(255, 0, 0);
-            var patternCollector = new FilteredElementCollector(_uidoc.Document);
+            var patternCollector = _doc==null ? new FilteredElementCollector(_uidoc.Document) : new FilteredElementCollector(_doc);
             patternCollector.OfClass(typeof(FillPatternElement));
             FillPatternElement fpe = patternCollector.ToElements().Cast<FillPatternElement>().First(x => x.GetFillPattern().Name == "<Solid fill>");
             Autodesk.Revit.DB.OverrideGraphicSettings ogs = SetOverrideGraphicSettings(fpe, color);

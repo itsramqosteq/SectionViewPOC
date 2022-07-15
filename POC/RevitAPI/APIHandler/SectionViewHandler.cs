@@ -25,6 +25,7 @@ namespace POC
         public Element _element = null;
         double _minLevel = 0;
         double _maxLevel = 0;
+        List<ViewSection> _unStrutSections = new List<ViewSection>();
         public void Execute(UIApplication uiApp)
         {
             _uiApp = uiApp;
@@ -131,7 +132,7 @@ namespace POC
                 }
 
 
-
+                _unStrutSections.Clear();
                 using (Transaction transaction = new Transaction(_doc))
                 {
                     transaction.Start("SampleHandler");
@@ -191,6 +192,23 @@ namespace POC
 
                     transaction.Commit();
                 }
+                using (Transaction transaction = new Transaction(_doc))
+                {
+                    transaction.Start("OverrideColor_UnStrut");
+
+                    FilteredElementCollector collectorsdss = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
+                    List<Element> elementsCollectorsdd = collectorsdss.OfCategory(BuiltInCategory.OST_Viewers).ToElements().ToList();
+                    foreach (Element item in elementsCollectorsdd)
+                    {
+                        if (_doc.GetElement(item.GetTypeId()).Name == "Building Section" && _unStrutSections.Any(x => x.Name == item.Name))
+                        {
+                            Utility.SetAlertColor(item.Id, _uiDoc);
+                        }
+                    }
+
+
+                    transaction.Commit();
+                }
             }
             catch (Exception exception)
             {
@@ -222,13 +240,7 @@ namespace POC
                     {
                         RecursiveLoopForBoundingBox(child, GridCollection, strutCollection);
 
-                        //if (child.ChildGroup != null && child.ChildGroup.Count == 1 && child.ChildGroup[0].ChildGroup != null
-                        //     && child.PreviousElement.Count < child.PreviousCurrentGroupElement.Count)
-                        //{
-                        //    GetShortestGridLine(child.PreviousCurrentGroupElement, GridCollection, ref strutCollection, ref isNoStrut, false);
 
-                        //}
-                        //else 
                         if (child.ChildGroup != null && child.ChildGroup.Count == 1 && child.ChildGroup[0].ChildGroup == null
                              && child.PreviousElement.Count < child.PreviousCurrentGroupElement.Count && Utility.IsDifferentElevation(child.CurrentElement[0])
                              )
@@ -661,6 +673,9 @@ namespace POC
                         _doc.Delete(e.Id);
                     }
                 Utility.SetAlertColor(sectionview.Id, _uiDoc);
+                _unStrutSections.Add(sectionview);
+
+
             }
 
         }
@@ -738,6 +753,8 @@ namespace POC
                           .Cast<ViewFamilyType>()
                           .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
             ViewSection sectionview = ViewSection.CreateSection(_doc, viewFamilyType.Id, box);
+
+
         }
 
         private ElementGroupByOrder RecursiveLoopForFindTheBranchInOrder(Dictionary<int, List<ConduitGrid>> conduitGridDictionary, ElementGroupByOrder elementGroupByOrder)
