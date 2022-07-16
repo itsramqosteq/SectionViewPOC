@@ -222,19 +222,16 @@ namespace POC
         {
             if (elementGroupByOrder.ChildGroup != null)
             {
-
                 int i = 0;
                 bool isNoStrut = false;
-
                 foreach (ElementGroupByOrder child in elementGroupByOrder.ChildGroup)
                 {
-
                     GetShortestGridLine(child.PreviousElement, GridCollection, ref strutCollection, ref isNoStrut);
-                    if (isNoStrut)
+                    if (isNoStrut && elementGroupByOrder.ChildGroup.Count > 1)
                     {
                         List<Element> newElement = CreateDumpConduitsBackward(elementGroupByOrder.ChildGroup[i - 1], child);
-                        if (newElement.Count > 0)
-                            GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, true, true);
+
+                        GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, true, true);
                     }
                     if (child.ChildGroup != null && child.ChildGroup.Count > 0)
                     {
@@ -246,12 +243,13 @@ namespace POC
                              )
                         {
                             List<Element> newElement = CreateDumpConduitsForward(child);
-                            if (newElement.Count > 0)
-                                GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false);
+
+                            GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
                         }
                     }
                     else
                     {
+
                         GetShortestGridLine(child.CurrentElement, GridCollection, ref strutCollection, ref isNoStrut, true, false, (child.ChildGroup == null || child.ChildGroup.Count == 0));
 
 
@@ -267,8 +265,8 @@ namespace POC
                             if (child.CurrentElement.Count < CurrentElement.Count())
                             {
                                 List<Element> newElement = CreateDumpConduitsForward(child);
-                                if (newElement.Count > 0)
-                                    GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
+
+                                GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
                             }
                         }
                     }
@@ -419,7 +417,8 @@ namespace POC
                 using (SubTransaction transaction = new SubTransaction(_doc))
                 {
                     transaction.Start();
-                    newElement.Add(Utility.CreateConduit(_doc, minLengthConduit2, line) as Element);
+                    if (line.Length > 1)
+                        newElement.Add(Utility.CreateConduit(_doc, minLengthConduit2, line) as Element);
                     transaction.Commit();
                 }
                 _doc.Regenerate();
@@ -514,7 +513,7 @@ namespace POC
                     }
 
                     XYZ intersect1 = Utility.GetIntersection(keyLine1, line1);
-                    if (intersect1 == null)
+                    if (intersect1 == null && line1.Length >= 1)
                     {
                         using (SubTransaction transaction = new SubTransaction(_doc))
                         {
@@ -524,17 +523,19 @@ namespace POC
                         }
                     }
                     XYZ intersect2 = Utility.GetIntersection(keyLine1, line2);
-                    if (intersect2 == null)
+                    if (intersect2 == null && line2.Length >= 1)
                     {
                         using (SubTransaction transaction = new SubTransaction(_doc))
                         {
                             transaction.Start();
+
                             newElement.Add(Utility.CreateConduit(_doc, item, line2) as Element);
                             transaction.Commit();
                         }
                     }
                 }
             }
+
             _doc.Regenerate();
             return newElement;
         }
@@ -544,7 +545,7 @@ namespace POC
             bool isMinLength = true, bool isNeedToDelete = false, bool isEndBranch = false)
         {
 
-            if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(elements[0])))
+            if (elements.Count == 0 || Utility.IsDifferentElevation(Utility.GetLineFromConduit(elements[0])) )
             {
                 return;
             }
