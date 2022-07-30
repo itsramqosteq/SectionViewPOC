@@ -42,11 +42,61 @@ namespace POC
             _offsetVariable = application.OffsetVariable;
             InitializeComponent();
             Instance = this;
-          
+
             try
             {
                 _window = window;
                 _externalEvents = externalEvents;
+
+
+                IEnumerable<ViewFamilyType> SectionType = new FilteredElementCollector(_doc)
+                                         .OfClass(typeof(ViewFamilyType))
+                                         .Cast<ViewFamilyType>()
+                                         .Where(e => e.ViewFamily == ViewFamily.Section);
+
+                IEnumerable<View> ViewTemplates = new FilteredElementCollector(_doc)
+                                       .OfClass(typeof(View))
+                                       .Cast<View>().Where(x => x.IsTemplate).Where(r => r.ViewType == ViewType.Section);
+
+                FamilyForViewSheetBox.ItemsSource = SectionType;
+                FamilyForViewSheetBox.SelectedIndex = 0;
+
+                TemplateForView.ItemsSource = ViewTemplates;
+                TemplateForView.SelectedIndex = 0;
+
+                //  List<Element> DimensionTypes = new FilteredElementCollector(_doc).OfClass(typeof(DimensionType)).
+                //Where(r => r.GetType() == typeof(DimensionType) && (r as DimensionType).StyleType == DimensionStyleType.Linear && (r as DimensionType).FamilyName != r.Name).ToList();
+                //  if (DimensionTypes.Any())
+                //  {
+                //      List<BaseClass> typeDetails = DimensionTypes.Select(r => new BaseClass()
+                //      { Name = string.Format("{0} : {1}", (r as DimensionType).FamilyName, r.Name), Id = r.Id }).ToList();
+                //      ddlFamilyType.ItemsSource = typeDetails;
+                //      ddlFamilyType.DisplayMemberPath = "Name";
+                //      ddlFamilyType.SelectedValuePath = "Id";
+                //      ddlFamilyType.SelectedIndex = 0;
+                //  }
+                List<Element> supportInstances = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(FamilyInstance))
+                .Where(x => x.Category.Name == "Electrical Fixtures").ToList();
+
+                List<MultiSelect> list = new List<MultiSelect>();
+                foreach (FamilyInstance si in supportInstances)
+                {
+                    string name = si.Symbol.FamilyName;
+                    if (!list.Any(x => x.Name == name))
+                    {
+                        MultiSelect obj = new MultiSelect();
+                        obj.Name = name;
+                        obj.Id = si.Id;
+                        obj.Item = si;
+                        list.Add(obj);
+                    }
+
+                }
+                strutList.ItemsSource = list;
+                strutList.DisplayMemberPath = "Name";
+                strutList.SelectedValuePath = "Id";
+
+                strutList.SelectedIndex = 0;
             }
             catch (Exception exception)
             {
@@ -64,6 +114,29 @@ namespace POC
         private void btnStrut_Click(object sender, RoutedEventArgs e)
         {
             _externalEvents[1].Raise();
+        }
+
+        private void strutList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            FamilyInstance selectedStrut = (((POC.MultiSelect)((System.Windows.Controls.Primitives.Selector)sender).SelectedItem).Item as FamilyInstance);
+            List<string> list = new List<string>();   
+            foreach (var item in selectedStrut.Parameters)
+            {
+                list.Add(((Autodesk.Revit.DB.InternalDefinition)((Autodesk.Revit.DB.Parameter)item).Definition).Name);
+                
+            }
+            list = list.OrderBy(x=>x).ToList();
+            strutParamList.ItemsSource = list;
+            int index = list.FindIndex(x => x == "STRUT LENGTH");
+            if (index >= 0)
+            {
+                strutParamList.SelectedIndex = index;
+            }
+        }
+
+        private void btnPlaceTags_Click(object sender, RoutedEventArgs e)
+        {
+            _externalEvents[2].Raise();
         }
     }
 }

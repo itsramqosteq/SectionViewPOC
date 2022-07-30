@@ -206,7 +206,6 @@ namespace POC
                 return Line.CreateBound(directionForward, directionBackward);
 
         }
-
         public static Line CrossProductLine(Conduit conduit, XYZ point, Double multiply, bool setZvalueZero = false)
         {
 
@@ -220,6 +219,29 @@ namespace POC
                 return  Line.CreateBound(directionForward, directionBackward);
 
         }
+        public static Line CrossProductForwardLine(Line line, XYZ point, Double multiply, bool setZvalueZero = false)
+        {
+            XYZ directionForward = line.Direction;
+            directionForward = point + directionForward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            if (setZvalueZero)
+                return Line.CreateBound(GetXYvalue(directionForward), GetXYvalue(point));
+            else
+                return Line.CreateBound(directionForward, point);
+
+        }
+        public static Line CrossProductBackwardLine(Line line, XYZ point, Double multiply, bool setZvalueZero = false)
+        {
+            XYZ directionForward = line.Direction;
+            XYZ directionBackward = (-1) * directionForward;
+            directionBackward = point + directionBackward.CrossProduct(XYZ.BasisZ).Multiply(multiply);
+            if (setZvalueZero)
+                return Line.CreateBound(GetXYvalue(point), GetXYvalue(directionBackward));
+            else
+                return Line.CreateBound(point, directionBackward);
+
+        }
+
+
 
         public static KeyValuePair<XYZ, XYZ> CrossProduct(Line line, XYZ point, Double multiply, bool setZvalueZero = false)
         {
@@ -246,7 +268,6 @@ namespace POC
                     return new KeyValuePair<XYZ, XYZ>(directionForward, directionBackward);
 
         }
-
         public static KeyValuePair<XYZ, XYZ> CrossProduct(Conduit conduit, XYZ point, Double multiply, bool setZvalueZero = false)
         {
 

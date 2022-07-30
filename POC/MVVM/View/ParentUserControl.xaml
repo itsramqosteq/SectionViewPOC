@@ -20,11 +20,93 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <StackPanel Orientation="Vertical">
-        <Button Content="SectionView"
-                Click="Button_Click"></Button>
-        <Button Content="Strut" x:Name="btnStrut"
-                Click="btnStrut_Click"></Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <ComboBox x:Name="FamilyForViewSheetBox"
+                      Height="25"
+                      VerticalAlignment="Center"
+                      materialDesign:HintAssist.Hint="Section Type">
+
+
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="db:FamilySymbol">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Family.Name}" />
+
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Grid.Row="1">
+            <ComboBox x:Name="TemplateForView"
+                      Height="25"
+                      VerticalAlignment="Center"
+                      materialDesign:HintAssist.Hint="View Templat">
+
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="db:FamilySymbol">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Family.Name}" />
+                            <TextBlock Text="{Binding Name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Grid.Row="2">
+            <!--<ComboBox x:Name="ddlFamilyType" IsEnabled="False"
+                      HorizontalAlignment="Left"
+                      IsEditable="True"
+                      StaysOpenOnEdit="True"
+                      materialDesign:HintAssist.Hint="Dimension Type"
+                      ItemsSource="{Binding ViewTypes}"
+                      FontSize="10"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+            </ComboBox>-->
+            <ComboBox x:Name="strutList" Width="285"
+                      HorizontalAlignment="Left"
+                      IsEditable="True"
+                      StaysOpenOnEdit="True"
+                      materialDesign:HintAssist.Hint="Sturt Families" SelectionChanged="strutList_SelectionChanged"
+                      FontSize="10"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Grid.Row="3">
+            <ComboBox x:Name="strutParamList"
+                      Width="285"
+                      HorizontalAlignment="Left"
+                      IsEditable="True"
+                      StaysOpenOnEdit="True"
+                      materialDesign:HintAssist.Hint="Set srut Length param"
+                      FontSize="10"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Orientation="Vertical"
+                    Grid.Row="4">
+            <Button Content="SectionView"
+                    Click="Button_Click"></Button>
+         
+        </StackPanel>
+        <StackPanel Orientation="Vertical"
+                    Grid.Row="5">
+            <Button Content="Place Tags"
+                   
+                    x:Name="btnPlaceTags"
+                    Click="btnPlaceTags_Click"></Button>
+            <Button Content="Strut" Visibility="Collapsed"
+                    x:Name="btnStrut"
+                    Click="btnStrut_Click"></Button>
         </StackPanel>
     </Grid>
 </UserControl>

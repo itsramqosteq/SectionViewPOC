@@ -26,6 +26,7 @@ namespace POC
         double _minLevel = 0;
         double _maxLevel = 0;
         List<ViewSection> _unStrutSections = new List<ViewSection>();
+        bool isSkipLoop = false;
         public void Execute(UIApplication uiApp)
         {
             _uiApp = uiApp;
@@ -136,79 +137,88 @@ namespace POC
                 using (Transaction transaction = new Transaction(_doc))
                 {
                     transaction.Start("SampleHandler");
-                    startDate = DateTime.UtcNow;
-                    ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                                                .OfClass(typeof(ViewFamilyType))
-                                                .Cast<ViewFamilyType>()
-                                                .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
 
-                    List<Element> GridCollection = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(Autodesk.Revit.DB.Grid)).ToList();
-                    FilteredElementCollector strutCollector = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
-
-                    List<Element> strutElement = strutCollector.OfClass(typeof(FamilyInstance)).ToElements().ToList().Where(x => Utility.GetFamilyInstanceName(x as FamilyInstance).ToLower().Contains("strut")).ToList();
-
-
-                    Dictionary<Element, Line> strutCollection = new Dictionary<Element, Line>();
-                    List<DetailLine> detailLines = new List<DetailLine>();
-                    foreach (FamilyInstance str in strutElement)
+                    using (SubTransaction subTransaction = new SubTransaction(_doc))
                     {
+                        subTransaction.Start();
 
-                        XYZ locationpoint = (str.Location as LocationPoint).Point;
-                        double angle = (str.Location as LocationPoint).Rotation;
-                        BoundingBoxXYZ bb = str.get_BoundingBox(_doc.ActiveView);
-                        if (bb != null)
+                        startDate = DateTime.UtcNow;
+                        ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
+                                                    .OfClass(typeof(ViewFamilyType))
+                                                    .Cast<ViewFamilyType>()
+                                                    .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
+
+                        List<Element> GridCollection = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(Autodesk.Revit.DB.Grid)).ToList();
+                        FilteredElementCollector strutCollector = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
+
+                        List<Element> strutElement = strutCollector.OfClass(typeof(FamilyInstance)).ToElements().ToList().Where(x => Utility.GetFamilyInstanceName(x as FamilyInstance).ToLower().Contains("strut")).ToList();
+
+
+                        Dictionary<Element, Line> strutCollection = new Dictionary<Element, Line>();
+                        List<DetailLine> detailLines = new List<DetailLine>();
+                        foreach (FamilyInstance str in strutElement)
                         {
-                            XYZ bbMin = bb.Min;
-                            XYZ bbMax = bb.Max;
-                            Line bbLine = Line.CreateBound(new XYZ(bbMin.X, bbMin.Y, 0), new XYZ(bbMax.X, bbMax.Y, 0));
-                            if (bbLine != null)
+
+                            XYZ locationpoint = (str.Location as LocationPoint).Point;
+                            double angle = (str.Location as LocationPoint).Rotation;
+                            BoundingBoxXYZ bb = str.get_BoundingBox(_doc.ActiveView);
+                            if (bb != null)
                             {
-                                double strlength = bbLine.Length;
-                                strlength /= 2;
-                                // locationpoint = (bbLine.GetEndPoint(0) + bbLine.GetEndPoint(1)) / 2;
-                                XYZ pt1 = new XYZ(locationpoint.X, locationpoint.Y, 0);
-                                XYZ pt2 = new XYZ(locationpoint.X + strlength, locationpoint.Y, 0);
-                                XYZ pt3 = new XYZ(locationpoint.X - strlength, locationpoint.Y, 0);
-                                Line line1 = Line.CreateBound(pt2, pt3);
-                                Line axis = Line.CreateBound(pt1, new XYZ(pt1.X, pt1.Y, pt1.Z + 1));
+                                XYZ bbMin = bb.Min;
+                                XYZ bbMax = bb.Max;
+                                Line bbLine = Line.CreateBound(new XYZ(bbMin.X, bbMin.Y, 0), new XYZ(bbMax.X, bbMax.Y, 0));
+                                if (bbLine != null)
+                                {
+                                    double strlength = bbLine.Length;
+                                    strlength /= 2;
+                                    // locationpoint = (bbLine.GetEndPoint(0) + bbLine.GetEndPoint(1)) / 2;
+                                    XYZ pt1 = new XYZ(locationpoint.X, locationpoint.Y, 0);
+                                    XYZ pt2 = new XYZ(locationpoint.X + strlength, locationpoint.Y, 0);
+                                    XYZ pt3 = new XYZ(locationpoint.X - strlength, locationpoint.Y, 0);
+                                    Line line1 = Line.CreateBound(pt2, pt3);
+                                    Line axis = Line.CreateBound(pt1, new XYZ(pt1.X, pt1.Y, pt1.Z + 1));
 
-                                DetailLine curve = _doc.Create.NewDetailCurve(_doc.ActiveView, line1) as DetailLine;
-                                ElementTransformUtils.RotateElement(_doc, curve.Id, axis, angle);
-                                detailLines.Add(curve);
-                                Line supportline = (curve.Location as LocationCurve).Curve as Line;
-                                strutCollection.Add(str, supportline);
+                                    DetailLine curve = _doc.Create.NewDetailCurve(_doc.ActiveView, line1) as DetailLine;
+                                    ElementTransformUtils.RotateElement(_doc, curve.Id, axis, angle);
+                                    detailLines.Add(curve);
+                                    Line supportline = (curve.Location as LocationCurve).Curve as Line;
+                                    strutCollection.Add(str, supportline);
 
 
 
+                                }
                             }
                         }
-                    }
-                    RecursiveLoopForBoundingBox(elementGroupByOrder, GridCollection, strutCollection);
+                        RecursiveLoopForBoundingBox(elementGroupByOrder, GridCollection, strutCollection);
 
-                    foreach (DetailLine item in detailLines)
-                    {
-                        _doc.Delete(item.Id);
-                    }
-
-                    transaction.Commit();
-                }
-                using (Transaction transaction = new Transaction(_doc))
-                {
-                    transaction.Start("OverrideColor_UnStrut");
-
-                    FilteredElementCollector collectorsdss = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
-                    List<Element> elementsCollectorsdd = collectorsdss.OfCategory(BuiltInCategory.OST_Viewers).ToElements().ToList();
-                    foreach (Element item in elementsCollectorsdd)
-                    {
-                        if (_doc.GetElement(item.GetTypeId()).Name == "Building Section" && _unStrutSections.Any(x => x.Name == item.Name))
+                        foreach (DetailLine item in detailLines)
                         {
-                            Utility.SetAlertColor(item.Id, _uiDoc);
+                            _doc.Delete(item.Id);
                         }
+                        subTransaction.Commit();
+                        _doc.Regenerate();
                     }
+                    using (SubTransaction subTransaction1 = new SubTransaction(_doc))
+                    {
+                        subTransaction1.Start();
+
+                        FilteredElementCollector collectorsdss = new FilteredElementCollector(_doc, _doc.ActiveView.Id);
+                        List<Element> elementsCollectorsdd = collectorsdss.OfCategory(BuiltInCategory.OST_Viewers).ToElements().ToList();
+                        ViewFamilyType viewFamilyType = (ViewFamilyType)ParentUserControl.Instance.FamilyForViewSheetBox.SelectionBoxItem;
+                        foreach (Element item in elementsCollectorsdd)
+                        {
+                            if (_doc.GetElement(item.GetTypeId()).Name == viewFamilyType.Name && _unStrutSections.Any(x => x.Name == item.Name))
+                            {
+                                Utility.SetAlertColor(item.Id, _uiDoc);
+                            }
+                        }
 
 
+                        subTransaction1.Commit();
+                    }
                     transaction.Commit();
                 }
+
             }
             catch (Exception exception)
             {
@@ -218,7 +228,7 @@ namespace POC
 
         }
 
-        private void RecursiveLoopForBoundingBox(ElementGroupByOrder elementGroupByOrder, List<Element> GridCollection, Dictionary<Element, Line> strutCollection)
+        private void RecursiveLoopForBoundingBox(ElementGroupByOrder elementGroupByOrder, List<Element> GridCollection, Dictionary<Element, Line> strutCollection, bool isRecursiveLoop = false)
         {
             if (elementGroupByOrder.ChildGroup != null)
             {
@@ -226,16 +236,26 @@ namespace POC
                 bool isNoStrut = false;
                 foreach (ElementGroupByOrder child in elementGroupByOrder.ChildGroup)
                 {
-                    GetShortestGridLine(child.PreviousElement, GridCollection, ref strutCollection, ref isNoStrut);
-                    if (isNoStrut && elementGroupByOrder.ChildGroup.Count > 1)
+
+                    if ((child.PreviousElement.Count > 2 || (child.CurrentElement.Count <= 2 && child.PreviousCurrentGroupElement.Count > 2)))
+                    {
+                        GetShortestGridLine(child.PreviousElement, GridCollection, ref strutCollection, ref isNoStrut);
+                    }
+                    if (isNoStrut && i > 0 && elementGroupByOrder.ChildGroup.Count > 1)
                     {
                         List<Element> newElement = CreateDumpConduitsBackward(elementGroupByOrder.ChildGroup[i - 1], child);
 
-                        GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, true, true);
+                        if (newElement.Count > 0)
+                            GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, true, true);
+                    }
+                    else if (isNoStrut && (elementGroupByOrder.ChildGroup.Count == 1 || i == 0))
+                    {
+                        WithoutStrut(child.PreviousElement, false);
                     }
                     if (child.ChildGroup != null && child.ChildGroup.Count > 0)
                     {
-                        RecursiveLoopForBoundingBox(child, GridCollection, strutCollection);
+
+                        RecursiveLoopForBoundingBox(child, GridCollection, strutCollection, true);
 
 
                         if (child.ChildGroup != null && child.ChildGroup.Count == 1 && child.ChildGroup[0].ChildGroup == null
@@ -243,14 +263,22 @@ namespace POC
                              )
                         {
                             List<Element> newElement = CreateDumpConduitsForward(child);
+                            if (newElement.Count > 2)
+                                GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
+                            else
+                            {
+                                foreach (Element e in newElement)
+                                {
+                                    _doc.Delete(e.Id);
+                                }
+                            }
 
-                            GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
                         }
                     }
                     else
                     {
-
-                        GetShortestGridLine(child.CurrentElement, GridCollection, ref strutCollection, ref isNoStrut, true, false, (child.ChildGroup == null || child.ChildGroup.Count == 0));
+                        if (child.CurrentElement.Count > 2)
+                            GetShortestGridLine(child.CurrentElement, GridCollection, ref strutCollection, ref isNoStrut, true, false, (child.ChildGroup == null || child.ChildGroup.Count == 0));
 
 
 
@@ -265,13 +293,33 @@ namespace POC
                             if (child.CurrentElement.Count < CurrentElement.Count())
                             {
                                 List<Element> newElement = CreateDumpConduitsForward(child);
-
-                                GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
+                                if (newElement.Count > 2)
+                                    GetShortestGridLine(newElement, GridCollection, ref strutCollection, ref isNoStrut, false, true);
+                                else
+                                {
+                                    foreach (Element e in newElement)
+                                    {
+                                        _doc.Delete(e.Id);
+                                    }
+                                }
                             }
                         }
                     }
                     i++;
                 }
+            }
+            else
+            {
+                bool isNoStrut = false;
+                if (elementGroupByOrder.CurrentElement !=null && elementGroupByOrder.CurrentElement.Count > 2)
+                {
+                    GetShortestGridLine(elementGroupByOrder.CurrentElement, GridCollection, ref strutCollection, ref isNoStrut);
+                }
+                if (isNoStrut )
+                {
+                    WithoutStrut(elementGroupByOrder.CurrentElement, false);
+                }
+               
             }
         }
         private List<Element> CreateDumpConduitsForSlop(ElementGroupByOrder child)
@@ -340,7 +388,7 @@ namespace POC
                 firstCross = Utility.CrossProduct(firstLine, firstMidPoint, Utility.GetConduitLength(parent.CurrentElement[0]) * 2, true);
                 FinalLine1 = Line.CreateBound(firstCross.Key, firstCross.Value);
             }
-            //  Utility.CreateConduit(_doc, parent.PreviousElement[0], FinalLine1.GetEndPoint(0), FinalLine1.GetEndPoint(1));
+            // Utility.CreateConduit(_doc, parent.PreviousElement[0], FinalLine1.GetEndPoint(0), FinalLine1.GetEndPoint(1));
 
             Element minLengthConduit2 = Utility.GetMinLengthConduit(child.PreviousElement);
             XYZ midPoint2 = Utility.GetMidPoint(minLengthConduit2, true);
@@ -545,7 +593,7 @@ namespace POC
             bool isMinLength = true, bool isNeedToDelete = false, bool isEndBranch = false)
         {
 
-            if (elements.Count == 0 || Utility.IsDifferentElevation(Utility.GetLineFromConduit(elements[0])) )
+            if (Utility.IsDifferentElevation(Utility.GetLineFromConduit(elements[0])))
             {
                 return;
             }
@@ -598,93 +646,106 @@ namespace POC
             }
             else
             {
-                List<XYZ> minList = new List<XYZ>();
-                List<XYZ> maxList = new List<XYZ>();
-                foreach (Element e in elements)
-                {
-                    var refcon = Reference.ParseFromStableRepresentation(_doc, e.UniqueId);
-                    BoundingBoxXYZ bx = e.get_BoundingBox(_doc.ActiveView);
-                    minList.Add(bx.Min);
-                    maxList.Add(bx.Max);
-                }
-                minList.OrderByDescending(p => p.X).ThenBy(t => t.Y).ToList();
-                maxList.OrderBy(p => p.X).ThenBy(t => t.Y).ToList();
-                XYZ point1 = new XYZ(minList.OrderBy(p => p.X).First().X, minList.OrderBy(p => p.Y).First().Y, 0);
-                XYZ point2 = new XYZ(maxList.OrderByDescending(p => p.X).First().X, maxList.OrderByDescending(p => p.Y).First().Y, 0);
-                Level lvl = (_doc.GetElement(_doc.ActiveView.GenLevel.Id)) as Level;
-                double lvlelev = lvl.Elevation;
 
-                double maxlvlelev = 0;
-                List<Element> LvlCollection = new FilteredElementCollector(_doc).OfClass(typeof(Autodesk.Revit.DB.Level)).ToList();
-                if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().Any(r => (r as Level).Elevation > lvlelev))
-                {
-                    if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().LastOrDefault(r => (r as Level).Elevation > lvlelev) is Level abovelevel)
-                    {
-                        maxlvlelev = abovelevel.Elevation;
-                    }
-                }
-
-                double elevationdiff = maxlvlelev - lvlelev + 1;
-
-                double h = elevationdiff;
-                double w = 3;
-                double offset = 0.125;
-                XYZ maxPt = new XYZ(w, h / 2, 0);
-                XYZ minPt = new XYZ(-w, -h / 2, -offset * 3);
-                XYZ pt1 = new XYZ(point2.X, point2.Y, maxlvlelev);
-                XYZ pt2 = new XYZ(point1.X, point1.Y, lvlelev);
-                XYZ middle = ((pt1 + pt2) / 2);
-                KeyValuePair<XYZ, XYZ> crossPoints3 = Utility.CrossProduct(elements[0], (point1 + point2) / 2, 5);
-
-                XYZ p = crossPoints3.Key;
-                XYZ q = crossPoints3.Value;
-                XYZ v = q - p;
-
-
-                XYZ edir = v.Normalize();
-                XYZ up = XYZ.BasisZ;
-                XYZ viewdir = edir.CrossProduct(up);
-                Transform transform = Transform.Identity;
-
-                transform.BasisX = edir;
-                transform.BasisY = up;
-                transform.BasisZ = viewdir;
-                transform.Origin = middle;
-
-                // crate bounding box for section view
-                BoundingBoxXYZ box = new BoundingBoxXYZ();
-                box.Max = maxPt;
-                box.Min = minPt;
-                box.Transform = transform;
-                ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                              .OfClass(typeof(ViewFamilyType))
-                              .Cast<ViewFamilyType>()
-                              .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
-                ViewSection sectionview = null;
-                using (SubTransaction transaction = new SubTransaction(_doc))
-                {
-                    transaction.Start();
-                    sectionview = ViewSection.CreateSection(_doc, viewFamilyType.Id, box);
-                    transaction.Commit();
-                }
-                _doc.Regenerate();
-                if (isNeedToDelete)
-                    foreach (Element e in elements)
-                    {
-                        _doc.Delete(e.Id);
-                    }
-                Utility.SetAlertColor(sectionview.Id, _uiDoc);
-                _unStrutSections.Add(sectionview);
-
-
+                WithoutStrut(elements, isNeedToDelete);
             }
 
         }
 
+        private void WithoutStrut(List<Element> elements, bool isNeedToDelete = false)
+        {
+            List<XYZ> minList = new List<XYZ>();
+            List<XYZ> maxList = new List<XYZ>();
+            foreach (Element e in elements)
+            {
+                var refcon = Reference.ParseFromStableRepresentation(_doc, e.UniqueId);
+                BoundingBoxXYZ bx = e.get_BoundingBox(_doc.ActiveView);
+                minList.Add(bx.Min);
+                maxList.Add(bx.Max);
+            }
+            minList.OrderByDescending(p => p.X).ThenBy(t => t.Y).ToList();
+            maxList.OrderBy(p => p.X).ThenBy(t => t.Y).ToList();
+            XYZ point1 = new XYZ(minList.OrderBy(p => p.X).First().X, minList.OrderBy(p => p.Y).First().Y, 0);
+            XYZ point2 = new XYZ(maxList.OrderByDescending(p => p.X).First().X, maxList.OrderByDescending(p => p.Y).First().Y, 0);
+            Level lvl = (_doc.GetElement(_doc.ActiveView.GenLevel.Id)) as Level;
+
+
+            double levelofElevation = lvl.Elevation;
+
+
+            double maxlvlelev = 0;
+            List<Element> LvlCollection = new FilteredElementCollector(_doc).OfClass(typeof(Autodesk.Revit.DB.Level)).ToList();
+            if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().Any(r => (r as Level).Elevation > levelofElevation))
+            {
+                if (LvlCollection.OrderByDescending(r => (r as Level).Elevation).ToList().LastOrDefault(r => (r as Level).Elevation > levelofElevation) is Level abovelevel)
+                {
+                    maxlvlelev = abovelevel.Elevation;
+                }
+            }
+
+            double elevationdiff = maxlvlelev - levelofElevation + 1;
+
+            double h = elevationdiff;
+            double w = 3;
+            double offset = 0.125;
+            XYZ maxPt = new XYZ(w, h / 2, 0);
+            XYZ minPt = new XYZ(-w, -h / 2, -offset * 3);
+            XYZ pt1 = new XYZ(point2.X, point2.Y, maxlvlelev);
+            XYZ pt2 = new XYZ(point1.X, point1.Y, levelofElevation);
+            XYZ middle = ((pt1 + pt2) / 2);
+            KeyValuePair<XYZ, XYZ> crossPoints3 = Utility.CrossProduct(elements[0], (point1 + point2) / 2, 5);
+
+            XYZ p = crossPoints3.Key;
+            XYZ q = crossPoints3.Value;
+            XYZ v = q - p;
+
+
+            XYZ edir = v.Normalize();
+            XYZ up = XYZ.BasisZ;
+            XYZ viewdir = edir.CrossProduct(up);
+            Transform transform = Transform.Identity;
+
+            transform.BasisX = edir;
+            transform.BasisY = up;
+            transform.BasisZ = viewdir;
+            transform.Origin = middle;
+
+            // crate bounding box for section view
+            BoundingBoxXYZ box = new BoundingBoxXYZ();
+            box.Max = maxPt;
+            box.Min = minPt;
+            box.Transform = transform;
+            ViewFamilyType viewFamilyType = (ViewFamilyType)ParentUserControl.Instance.FamilyForViewSheetBox.SelectionBoxItem;
+            ViewSection sectionview = null;
+            using (SubTransaction transaction = new SubTransaction(_doc))
+            {
+                transaction.Start();
+                sectionview = ViewSection.CreateSection(_doc, viewFamilyType.Id, box);
+                if (ParentUserControl.Instance.TemplateForView.SelectionBoxItem.ToString() != string.Empty)
+                {
+                    var ViewTemp = (View)ParentUserControl.Instance.TemplateForView.SelectionBoxItem;
+                    sectionview.ViewTemplateId = ViewTemp.Id;
+                }
+                transaction.Commit();
+            }
+            _doc.Regenerate();
+            if (isNeedToDelete)
+                foreach (Element e in elements)
+                {
+                    _doc.Delete(e.Id);
+                }
+            Utility.SetAlertColor(sectionview.Id, _uiDoc);
+            _unStrutSections.Add(sectionview);
+
+        }
         private void CreateSectionView(Element strut, Line line)
         {
-
-            double strutLength = strut.LookupParameter("STRUT LENGTH").AsDouble();
+            string param = (string)ParentUserControl.Instance.strutParamList.SelectedValue;
+            if (string.IsNullOrEmpty(param))
+            {
+                return;
+            }
+            double strutLength = strut.LookupParameter(param).AsDouble();
             XYZ abshandorienation = new XYZ();
             XYZ handorienation = (strut as FamilyInstance).HandOrientation;
             if ((Math.Sign(handorienation.X) == 1 && Math.Sign(handorienation.Y) == 1) || (Math.Sign(handorienation.X) == -1 && Math.Sign(handorienation.Y) == -1))
@@ -749,11 +810,13 @@ namespace POC
             box.Max = maxPt;
             box.Min = minPt;
             box.Transform = transform;
-            ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                          .OfClass(typeof(ViewFamilyType))
-                          .Cast<ViewFamilyType>()
-                          .FirstOrDefault<ViewFamilyType>(x => ViewFamily.Section == x.ViewFamily);
+            ViewFamilyType viewFamilyType = (ViewFamilyType)ParentUserControl.Instance.FamilyForViewSheetBox.SelectionBoxItem;
             ViewSection sectionview = ViewSection.CreateSection(_doc, viewFamilyType.Id, box);
+            if (ParentUserControl.Instance.TemplateForView.SelectionBoxItem.ToString() != string.Empty)
+            {
+                var ViewTemp = (View)ParentUserControl.Instance.TemplateForView.SelectionBoxItem;
+                sectionview.ViewTemplateId = ViewTemp.Id;
+            }
 
 
         }
@@ -840,450 +903,7 @@ namespace POC
             return elementGroupByOrder;
         }
 
-        private ViewSection CreateViewSection(List<Element> elements, ViewFamilyType viewFamilyType, XYZ newPoint = null, XYZ orgin = null)
-        {
-            List<XYZ> minList = new List<XYZ>();
-            List<XYZ> maxList = new List<XYZ>();
-            foreach (Element e in elements)
-            {
-                var refcon = Reference.ParseFromStableRepresentation(_doc, e.UniqueId);
-                BoundingBoxXYZ bx = e.get_BoundingBox(_doc.ActiveView);
-                minList.Add(bx.Min);
-                maxList.Add(bx.Max);
-            }
-            minList.OrderByDescending(p => p.X).ThenBy(t => t.Y).ToList();
-            maxList.OrderBy(p => p.X).ThenBy(t => t.Y).ToList();
-            XYZ point1 = new XYZ(minList.OrderBy(p => p.X).First().X, minList.OrderBy(p => p.Y).First().Y, 0);
-            XYZ point2 = new XYZ(maxList.OrderByDescending(p => p.X).First().X, maxList.OrderByDescending(p => p.Y).First().Y, 0);
-            double minZ = minList.OrderBy(p => p.Z).First().Z;
-            double maxZ = maxList.OrderByDescending(p => p.Z).First().Z;
-            if (newPoint != null)
-            {
-                point2 = orgin.DistanceTo(point1) > orgin.DistanceTo(point2) ? point1 : point2;
-                point1 = newPoint;
-            }
-            double dis = point1.DistanceTo(point2) / 2;
-            KeyValuePair<XYZ, XYZ> crossPoints3 = Utility.CrossProduct(elements[0], (point1 + point2) / 2, 5);
-            //if (newPoint != null)
-            //{
-            //    Utility.CreateConduit(_doc, elements[0], point1, point2);
-            //Utility.CreateConduit(_doc, elements[0], crossPoints3.Key, crossPoints3.Value);
-            //}
-            XYZ p = crossPoints3.Key;
-            XYZ q = crossPoints3.Value;
-            XYZ v = q - p;
 
-
-            double h = _maxLevel - _minLevel + 1; ;
-            double w = v.GetLength();
-            double offset = dis - 1;
-            XYZ min = new XYZ(-w, minZ - offset, -offset);
-            XYZ max = new XYZ(w, maxZ + offset, -offset + 1);
-            //double offset = 0.125;
-
-            //XYZ max = new XYZ(w, h / 2, 0);
-            //XYZ min = new XYZ(-w, -h / 2, -offset * 3);
-
-
-            XYZ midpoint = p + 0.5 * v;
-            XYZ walldir = v.Normalize();
-            XYZ up = XYZ.BasisZ;
-            XYZ viewdir = walldir.CrossProduct(up);
-
-            Transform t = Transform.Identity;
-            t.Origin = midpoint;
-            t.BasisX = walldir;
-            t.BasisY = up;
-            t.BasisZ = viewdir;
-
-            BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
-            sectionBox.Transform = t;
-            sectionBox.Min = min;
-            sectionBox.Max = max;
-            ViewSection viewSection = null;
-
-            using (SubTransaction transaction = new SubTransaction(_doc))
-            {
-                transaction.Start();
-                viewSection = ViewSection.CreateSection(_doc, viewFamilyType.Id, sectionBox);
-                if (newPoint != null)
-                {
-                    transaction.Commit();
-                    return viewSection;
-                }
-                KeyValuePair<XYZ, XYZ> crossPoints4 = Utility.CrossProduct(elements[0], new XYZ(viewSection.Origin.X, viewSection.Origin.Y, 0), 25, true);
-                //Utility.CreateConduit(_doc, elements[0] as Conduit, crossPoints4.Key, crossPoints4.Value);
-                Line createLine = Line.CreateBound(crossPoints4.Key, crossPoints4.Value);
-                XYZ previousXYZ = null;
-                int i = 0;
-                XYZ finalInterSectionPoint = null;
-                foreach (Element item in elements)
-                {
-                    Line line1 = Utility.GetLineFromConduit(item, true);
-                    XYZ intesectionPoint = Utility.GetIntersection(line1, createLine);
-                    if (i > 0)
-                        if (intesectionPoint == null && previousXYZ != null)
-                        {
-                            double lowDis = 0;
-                            int j = 0;
-                            foreach (Element item1 in elements)
-                            {
-                                double takeDis = 0;
-                                Line line = Utility.GetLineFromConduit(item, true);
-                                XYZ xYZ = null;
-
-                                if (previousXYZ.DistanceTo(line.GetEndPoint(0)) < previousXYZ.DistanceTo(line.GetEndPoint(1)))
-                                {
-                                    takeDis = previousXYZ.DistanceTo(line.GetEndPoint(0));
-                                    xYZ = line.GetEndPoint(0);
-                                }
-                                else
-                                {
-                                    takeDis = previousXYZ.DistanceTo(line.GetEndPoint(1));
-                                    xYZ = line.GetEndPoint(1);
-                                }
-
-                                if (j == 0 || lowDis < takeDis)
-                                {
-                                    lowDis = takeDis;
-                                    finalInterSectionPoint = xYZ;
-                                }
-                                j++;
-                            }
-                            _doc.Delete(viewSection.Id);
-
-                            offset = dis - (lowDis + 2);// 0.1 * w;
-
-                            min = new XYZ(-w, minZ - offset, -offset);
-                            max = new XYZ(w, maxZ + offset, -offset + 1);
-
-
-                            midpoint = p + 0.5 * v;
-                            walldir = v.Normalize();
-                            up = XYZ.BasisZ;
-                            viewdir = walldir.CrossProduct(up);
-
-                            t = Transform.Identity;
-                            t.Origin = midpoint;
-                            t.BasisX = walldir;
-                            t.BasisY = up;
-                            t.BasisZ = viewdir;
-
-                            sectionBox = new BoundingBoxXYZ();
-                            sectionBox.Transform = t;
-                            sectionBox.Min = min;
-                            sectionBox.Max = max;
-                            viewSection = ViewSection.CreateSection(_doc, viewFamilyType.Id, sectionBox);
-                            break;
-                        }
-                        else if (intesectionPoint != null && previousXYZ == null)
-                        {
-                            double lowDis = 0;
-                            int j = 0;
-                            foreach (Element item1 in elements)
-                            {
-                                double takeDis = 0;
-                                Line line = Utility.GetLineFromConduit(item, true);
-                                XYZ xYZ = null;
-
-                                if (intesectionPoint.DistanceTo(line.GetEndPoint(0)) < intesectionPoint.DistanceTo(line.GetEndPoint(1)))
-                                {
-                                    takeDis = intesectionPoint.DistanceTo(line.GetEndPoint(0));
-                                    xYZ = line.GetEndPoint(0);
-                                }
-                                else
-                                {
-                                    takeDis = intesectionPoint.DistanceTo(line.GetEndPoint(1));
-                                    xYZ = line.GetEndPoint(1);
-
-                                }
-
-                                if (j == 0 || lowDis < takeDis)
-                                {
-                                    lowDis = takeDis;
-                                    finalInterSectionPoint = xYZ;
-                                }
-                                j++;
-                            }
-                            _doc.Delete(viewSection.Id);
-                            offset = dis - (lowDis + 2);// 0.1 * w;
-
-                            min = new XYZ(-w, minZ - offset, -offset);
-                            max = new XYZ(w, maxZ + offset, -offset + 1);
-
-
-                            midpoint = p + 0.5 * v;
-                            walldir = v.Normalize();
-                            up = XYZ.BasisZ;
-                            viewdir = walldir.CrossProduct(up);
-
-                            t = Transform.Identity;
-                            t.Origin = midpoint;
-                            t.BasisX = walldir;
-                            t.BasisY = up;
-                            t.BasisZ = viewdir;
-
-                            sectionBox = new BoundingBoxXYZ();
-                            sectionBox.Transform = t;
-                            sectionBox.Min = min;
-                            sectionBox.Max = max;
-                            viewSection = ViewSection.CreateSection(_doc, viewFamilyType.Id, sectionBox);
-                            break;
-
-                        }
-                    previousXYZ = intesectionPoint;
-                    i++;
-                }
-                transaction.Commit();
-
-            }
-            _doc.Regenerate();
-            return viewSection;
-        }
-        public static void SubTransactionForTag(Document _doc, List<Element> elements, out List<XYZ> minAxis, out List<XYZ> maxAxis, out double maxHeight, out double maxWidth)
-        {
-            minAxis = new List<XYZ>();
-            maxAxis = new List<XYZ>();
-            maxHeight = 0;
-            maxWidth = 0;
-            FilteredElementCollector _collector = new FilteredElementCollector(_doc);
-            List<Element> tags = _collector.OfCategory(BuiltInCategory.OST_ConduitTags).ToElements().ToList().Where(x => x.Name.ToLower().Contains("snv")).ToList();
-            if (tags.Count > 0)
-                using (SubTransaction subTransaction = new SubTransaction(_doc))
-                {
-                    subTransaction.Start();
-                    int viewScale = _doc.ActiveView.Scale;
-                    foreach (Element e in elements)
-                    {
-                        var refcon = Reference.ParseFromStableRepresentation(_doc, e.UniqueId);
-                        BoundingBoxXYZ bx = e.get_BoundingBox(_doc.ActiveView);
-                        minAxis.Add(bx.Min);
-                        maxAxis.Add(bx.Max);
-                        XYZ midpoint = Utility.GetConduitMidPoint(e);
-                        IndependentTag newtag = IndependentTag.Create(_doc, tags[0].Id, _doc.ActiveView.Id, refcon, true, TagOrientation.Horizontal, midpoint);
-                        newtag.LeaderEndCondition = LeaderEndCondition.Free;
-                        BoundingBoxXYZ boxXYZ = newtag.get_BoundingBox(_doc.ActiveView);
-
-                        XYZ one = Utility.GetXYvalue(boxXYZ.Min);
-                        XYZ three = Utility.GetXYvalue(boxXYZ.Max);
-                        XYZ two = new XYZ(one.X, three.Y, 0);
-                        XYZ four = new XYZ(three.X, one.Y, 0);
-                        //Utility.CreateConduit(_doc, e as Conduit, one, two);
-                        //Utility.CreateConduit(_doc, e as Conduit, two, three);
-                        //Utility.CreateConduit(_doc, e as Conduit, three, four);
-                        double width = one.DistanceTo(two);
-                        if (width > maxWidth)
-                        {
-                            maxWidth = width;
-                        }
-                        double height = two.DistanceTo(three);
-                        if (height > maxHeight)
-                        {
-                            maxHeight = height;
-                        }
-
-                    }
-                    subTransaction.Commit();
-                }
-        }
-
-        public static Solid SolidBoundingBox(Solid inputSolid, double maxElevation)
-        {
-            try
-            {
-                List<Face> faces = new List<Face>();
-                foreach (Face l_face in inputSolid.Faces)
-                {
-                    if (l_face is PlanarFace)
-                        faces.Add(l_face);
-                }
-                if (faces.Any(r => (r as PlanarFace).FaceNormal.Z == 1))
-                {
-                    Face face = faces.FirstOrDefault(r => (r as PlanarFace).FaceNormal.Z == 1);
-
-                    if (maxElevation > 0)
-                    {
-                        List<CurveLoop> loopList = face.GetEdgesAsCurveLoops().ToList();
-                        Solid preTransformBox = GeometryCreationUtilities.CreateExtrusionGeometry(loopList, XYZ.BasisZ, maxElevation);
-                        BoundingBoxXYZ bb = preTransformBox.GetBoundingBox();
-                        return preTransformBox;
-                    }
-                    else
-                        return null;
-                }
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        static Solid CreateCube(double d, Conduit reference, Document doc)
-        {
-            return CreateRectangularPrism(
-                 XYZ.Zero, d, d, d, reference, doc);
-        }
-        static Solid CreateRectangularPrism(
-                 XYZ center,
-                 double d1,
-                 double d2,
-                 double d3, Conduit reference, Document doc)
-        {
-            List<Curve> profile = new List<Curve>();
-            XYZ profile00 = new XYZ(-d1 / 2, -d2 / 2, -d3 / 2);
-            XYZ profile01 = new XYZ(-d1 / 2, d2 / 2, -d3 / 2);
-            XYZ profile11 = new XYZ(d1 / 2, d2 / 2, -d3 / 2);
-            XYZ profile10 = new XYZ(d1 / 2, -d2 / 2, -d3 / 2);
-            Utility.CreateConduit(doc, reference, profile00, profile01);
-            Utility.CreateConduit(doc, reference, profile01, profile11);
-            Utility.CreateConduit(doc, reference, profile11, profile10);
-            Utility.CreateConduit(doc, reference, profile10, profile00);
-            profile.Add(Line.CreateBound(profile00, profile01));
-            profile.Add(Line.CreateBound(profile01, profile11));
-            profile.Add(Line.CreateBound(profile11, profile10));
-            profile.Add(Line.CreateBound(profile10, profile00));
-
-            CurveLoop curveLoop = CurveLoop.Create(profile);
-
-            SolidOptions options = new SolidOptions(
-              ElementId.InvalidElementId,
-              ElementId.InvalidElementId);
-
-            return GeometryCreationUtilities
-              .CreateExtrusionGeometry(
-                new CurveLoop[] { curveLoop },
-                XYZ.BasisZ, d3, options);
-        }
-        static public Solid CreateSphereAt(
-        XYZ centre,
-        double radius)
-        {
-            // Use the standard global coordinate system 
-            // as a frame, translated to the sphere centre.
-
-            Frame frame = new Frame(centre, XYZ.BasisX,
-              XYZ.BasisY, XYZ.BasisZ);
-
-            // Create a vertical half-circle loop 
-            // that must be in the frame location.
-
-            Arc arc = Arc.Create(
-              centre - radius * XYZ.BasisZ,
-              centre + radius * XYZ.BasisZ,
-              centre + radius * XYZ.BasisX);
-
-            Line line = Line.CreateBound(
-              arc.GetEndPoint(1),
-              arc.GetEndPoint(0));
-
-            CurveLoop halfCircle = new CurveLoop();
-            halfCircle.Append(arc);
-            halfCircle.Append(line);
-
-            List<CurveLoop> loops = new List<CurveLoop>(1);
-            loops.Add(halfCircle);
-
-            return GeometryCreationUtilities
-              .CreateRevolvedGeometry(frame, loops,
-                0, 2 * Math.PI);
-        }
-        private static int schemaId = -1;
-
-        static void PaintSolid(
-         UIApplication uiApp,
-         Solid s,
-         double value)
-        {
-            Autodesk.Revit.ApplicationServices.Application app = uiApp.Application;
-            View view = uiApp.ActiveUIDocument.Document.ActiveView;
-
-            if (view.AnalysisDisplayStyleId
-              == ElementId.InvalidElementId)
-            {
-                CreateAVFDisplayStyle(uiApp.ActiveUIDocument.Document, view);
-            }
-
-            SpatialFieldManager sfm = SpatialFieldManager
-              .GetSpatialFieldManager(view);
-
-            if (null == sfm)
-            {
-                sfm = SpatialFieldManager
-                  .CreateSpatialFieldManager(view, 1);
-            }
-
-            if (-1 != schemaId)
-            {
-                IList<int> results = sfm.GetRegisteredResults();
-                if (!results.Contains(schemaId))
-                {
-                    schemaId = -1;
-                }
-            }
-
-            if (-1 == schemaId)
-            {
-                AnalysisResultSchema resultSchema1
-                  = new AnalysisResultSchema("PaintedSolid",
-                    "Description");
-
-                schemaId = sfm.RegisterResult(resultSchema1);
-            }
-
-            FaceArray faces = s.Faces;
-            Transform trf = Transform.Identity;
-            foreach (Face face in faces)
-            {
-                int idx = sfm.AddSpatialFieldPrimitive(face, trf);
-                IList<UV> uvPts = new List<UV>();
-                List<double> doubleList = new List<double>();
-                IList<ValueAtPoint> valList = new List<ValueAtPoint>();
-                BoundingBoxUV bb = face.GetBoundingBox();
-                uvPts.Add(bb.Min);
-                doubleList.Add(value);
-                valList.Add(new ValueAtPoint(doubleList));
-
-                FieldDomainPointsByUV pnts
-                  = new FieldDomainPointsByUV(uvPts);
-
-                FieldValues vals = new FieldValues(valList);
-                sfm.UpdateSpatialFieldPrimitive(idx, pnts,
-                  vals, schemaId);
-            }
-        }
-
-        static void CreateAVFDisplayStyle(
-          Document doc,
-          View view)
-        {
-            using (SubTransaction t = new SubTransaction(doc))
-            {
-                t.Start();
-
-                AnalysisDisplayColoredSurfaceSettings
-                  coloredSurfaceSettings = new
-                    AnalysisDisplayColoredSurfaceSettings();
-
-                coloredSurfaceSettings.ShowGridLines = true;
-
-                AnalysisDisplayColorSettings colorSettings
-                  = new AnalysisDisplayColorSettings();
-
-                AnalysisDisplayLegendSettings legendSettings
-                  = new AnalysisDisplayLegendSettings();
-
-                legendSettings.ShowLegend = false;
-
-                AnalysisDisplayStyle analysisDisplayStyle
-                  = AnalysisDisplayStyle.CreateAnalysisDisplayStyle(
-                    doc, "Paint Solid", coloredSurfaceSettings,
-                    colorSettings, legendSettings);
-
-                view.AnalysisDisplayStyleId = analysisDisplayStyle.Id;
-
-                t.Commit();
-            }
-        }
         public string GetName()
         {
             return "Revit Addin";

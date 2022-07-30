@@ -74,6 +74,7 @@ namespace POC
 
             _externalEvents.Add(ExternalEvent.Create(new SectionViewHandler()));
             _externalEvents.Add(ExternalEvent.Create(new StrutHandler()));
+            _externalEvents.Add(ExternalEvent.Create(new SampleHandlerWhiteSpace()));
 
         }
 
